@@ -3763,7 +3763,10 @@
                     <span>Sincronizado com os centros e justificativas do <strong>Mês de Análise</strong>: <strong>1º Marco (7º d.u.)</strong> ➔ <strong>2º Marco (Não Realização)</strong> ➔ <strong>3º Marco (Não Conformidade)</strong>.</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="exportarAuditoriaEnviosCSV()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5">
+                    <button type="button" onclick="exportarAuditoriaEnviosPDF()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-file-pdf"></i> Exportar PDF da Auditoria
+                    </button>
+                    <button type="button" onclick="exportarAuditoriaEnviosCSV()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-file-csv text-emerald-600"></i> Exportar CSV do Mês
                     </button>
                     <button type="button" onclick="fecharModalAuditoriaEnvios()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg transition-colors">
@@ -3904,7 +3907,17 @@
             <!-- Corpo -->
             <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700 flex-1 bg-slate-50/40">
                 <!-- Cards Resumo de Acessos -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div onclick="filtrarStatusAdminCard('ONLINE')" class="bg-emerald-50/90 p-3.5 rounded-xl border-2 border-emerald-500 shadow-xs cursor-pointer hover:bg-emerald-100/80 transition-all">
+                        <span class="text-[10px] font-bold text-emerald-800 uppercase flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            Online Agora
+                        </span>
+                        <div class="flex items-center justify-between mt-1">
+                            <strong id="admCardOnline" class="text-xl font-extrabold text-emerald-700">0</strong>
+                            <i class="fa-solid fa-signal text-emerald-600 text-base"></i>
+                        </div>
+                    </div>
                     <div onclick="filtrarStatusAdminCard('TODOS')" class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs cursor-pointer hover:border-[#00ab97] transition-all">
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Total de Contas</span>
                         <div class="flex items-center justify-between mt-1">
@@ -3970,6 +3983,7 @@
                         <select id="admFiltroStatus" onchange="renderTabelaUsuariosAdmin()"
                             class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
                             <option value="TODOS">Todos os Usuários</option>
+                            <option value="ONLINE">🟢 Online Agora</option>
                             <option value="pendente">⏳ Aguardando Autorização</option>
                             <option value="aprovado">✅ Autorizados</option>
                             <option value="bloqueado">🚫 Bloqueados</option>
@@ -3995,7 +4009,8 @@
                             <thead>
                                 <tr class="bg-slate-100 text-slate-600 text-[11px] font-bold uppercase border-b border-slate-200">
                                     <th class="p-3">Usuário / E-mail</th>
-                                    <th class="p-3">Cadastro / Último Acesso</th>
+                                    <th class="p-3">Conexão & Tempo Conectado</th>
+                                    <th class="p-3">Último Acesso / Cadastro</th>
                                     <th class="p-3">Perfil</th>
                                     <th class="p-3 text-center">Status de Acesso</th>
                                     <th class="p-3 text-center">Ações de Autorização</th>
@@ -4684,8 +4699,11 @@
                 return { permitido: false, status: 'pendente', role: 'usuario', registro: reg };
             }
 
-            // Atualiza último acesso
+            // Atualiza último acesso e inicia dados de sessão ativa
             reg.ultimoAcesso = agoraIso;
+            reg.inicioSessaoAtual = agoraIso;
+            reg.ultimoHeartbeat = agoraIso;
+            reg.online = true;
             if (user.displayName && (!reg.nome || reg.nome === emailNorm.split('@')[0])) {
                 reg.nome = user.displayName;
             }
@@ -4693,8 +4711,18 @@
             salvarUsuariosAcessoLocal(mapaLocal);
             if (dbFirestore && firebaseConectado) {
                 try {
-                    await dbFirestore.collection(FS_COL_USUARIOS).doc(emailNorm).set({ ultimoAcesso: agoraIso, nome: reg.nome || '' }, { merge: true });
+                    await dbFirestore.collection(FS_COL_USUARIOS).doc(emailNorm).set({
+                        ultimoAcesso: agoraIso,
+                        inicioSessaoAtual: agoraIso,
+                        ultimoHeartbeat: agoraIso,
+                        online: true,
+                        nome: reg.nome || ''
+                    }, { merge: true });
                 } catch (e) { }
+            }
+            // Dispara rastreamento ativo de heartbeat e tempo conectado
+            if (typeof iniciarRastreamentoSessaoUsuario === 'function') {
+                iniciarRastreamentoSessaoUsuario(emailNorm);
             }
 
             const aprovado = (reg.status === 'aprovado');
@@ -4871,23 +4899,163 @@
             }
         };
 
+        // Auxiliares de Rastreamento de Sessão e Tempo Conectado
+        let timerHeartbeatSessao = null;
+
+        window.formatarDuracaoAmigavel = function (segundosTotais) {
+            const s = Math.max(0, Math.floor(Number(segundosTotais) || 0));
+            if (s < 60) return s === 1 ? '1 segundo' : (s + ' segundos');
+            const minutos = Math.floor(s / 60);
+            if (minutos < 60) {
+                const segRest = s % 60;
+                return segRest > 0 ? (minutos + 'min ' + segRest + 's') : (minutos + ' min');
+            }
+            const horas = Math.floor(minutos / 60);
+            const minRest = minutos % 60;
+            if (horas < 24) {
+                return minRest > 0 ? (horas + 'h ' + minRest + 'min') : (horas + 'h');
+            }
+            const dias = Math.floor(horas / 24);
+            const horasRest = horas % 24;
+            return horasRest > 0 ? (dias + 'd ' + horasRest + 'h') : (dias + ' dias');
+        };
+
+        window.formatarDataHoraExata = function (isoStr) {
+            if (!isoStr) return '-';
+            try {
+                const dt = new Date(isoStr);
+                if (isNaN(dt.getTime())) return '-';
+                return dt.toLocaleString('pt-BR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+            } catch (e) {
+                return '-';
+            }
+        };
+
+        window.calcularTempoDecorridoRelativo = function (isoStr) {
+            if (!isoStr) return '';
+            try {
+                const agora = Date.now();
+                const dt = new Date(isoStr).getTime();
+                if (isNaN(dt)) return '';
+                const diffSegundos = Math.max(0, Math.floor((agora - dt) / 1000));
+                if (diffSegundos < 60) return 'agora há pouco';
+                const min = Math.floor(diffSegundos / 60);
+                if (min < 60) return ('há ' + min + ' min');
+                const hrs = Math.floor(min / 60);
+                if (hrs < 24) return ('há ' + hrs + 'h');
+                const dias = Math.floor(hrs / 24);
+                return ('há ' + dias + 'd');
+            } catch (e) {
+                return '';
+            }
+        };
+
+        window.verificarUsuarioOnlineAgora = function (usuario) {
+            if (!usuario) return false;
+            // Se o próprio usuário logado for este, ele está online
+            const emailLogado = normalizarEmailAcesso(obterEmailUsuarioLogado());
+            const emailUsuario = normalizarEmailAcesso(usuario.email);
+            if (emailLogado && emailLogado === emailUsuario) return true;
+
+            // Heartbeat recente nos últimos 3 minutos (180 segundos)
+            const refHeartbeat = usuario.ultimoHeartbeat || usuario.ultimoAcesso;
+            if (!refHeartbeat) return false;
+            try {
+                const dt = new Date(refHeartbeat).getTime();
+                if (isNaN(dt)) return false;
+                const diffMin = (Date.now() - dt) / (1000 * 60);
+                return diffMin <= 3;
+            } catch (e) {
+                return false;
+            }
+        };
+
+        window.iniciarRastreamentoSessaoUsuario = function (emailNorm) {
+            if (!emailNorm) return;
+            const email = normalizarEmailAcesso(emailNorm);
+            if (!email) return;
+
+            // Se já houver timer, limpa antes
+            if (timerHeartbeatSessao) {
+                clearInterval(timerHeartbeatSessao);
+                timerHeartbeatSessao = null;
+            }
+
+            const chaveInicio = 'sessao_inicio_' + email;
+            if (!sessionStorage.getItem(chaveInicio)) {
+                sessionStorage.setItem(chaveInicio, new Date().toISOString());
+            }
+
+            // Heartbeat a cada 45 segundos
+            timerHeartbeatSessao = setInterval(async () => {
+                try {
+                    const agoraIso = new Date().toISOString();
+                    const inicioSessaoIso = sessionStorage.getItem(chaveInicio) || agoraIso;
+                    const duracaoSessaoAtualSeg = Math.max(0, Math.floor((Date.now() - new Date(inicioSessaoIso).getTime()) / 1000));
+
+                    // Atualiza localmente
+                    const mapa = carregarUsuariosAcessoLocal();
+                    if (mapa[email]) {
+                        mapa[email].ultimoHeartbeat = agoraIso;
+                        mapa[email].ultimoAcesso = agoraIso;
+                        mapa[email].online = true;
+                        mapa[email].duracaoSessaoAtualSeg = duracaoSessaoAtualSeg;
+                        mapa[email].tempoTotalConectadoSeg = (Number(mapa[email].tempoTotalConectadoSeg) || 0) + 45;
+                        salvarUsuariosAcessoLocal(mapa);
+                    }
+
+                    // Grava no Firestore se conectado
+                    if (dbFirestore && firebaseConectado) {
+                        await dbFirestore.collection(FS_COL_USUARIOS).doc(email).set({
+                            ultimoHeartbeat: agoraIso,
+                            ultimoAcesso: agoraIso,
+                            online: true,
+                            duracaoSessaoAtualSeg: duracaoSessaoAtualSeg,
+                            tempoTotalConectadoSeg: firebase.firestore.FieldValue.increment(45)
+                        }, { merge: true });
+                    }
+                } catch (e) {
+                    // Silencioso em caso de falha transitória de rede
+                }
+            }, 45000);
+
+            // Ao fechar ou recarregar a janela, marca como offline
+            window.addEventListener('beforeunload', () => {
+                try {
+                    const agoraIso = new Date().toISOString();
+                    if (dbFirestore && firebaseConectado) {
+                        dbFirestore.collection(FS_COL_USUARIOS).doc(email).set({
+                            ultimoHeartbeat: agoraIso,
+                            online: false
+                        }, { merge: true });
+                    }
+                } catch (e) { }
+            });
+        };
+
         function atualizarContadoresAdminUI() {
             const lista = Object.values(cacheUsuariosAdmin || {});
             const total = lista.length;
             const pendentes = lista.filter(u => u.status === 'pendente' && !ehAdministrador(u.email)).length;
             const aprovados = lista.filter(u => u.status === 'aprovado' || ehAdministrador(u.email)).length;
             const bloqueados = lista.filter(u => u.status === 'bloqueado' && !ehAdministrador(u.email)).length;
+            const online = lista.filter(u => verificarUsuarioOnlineAgora(u)).length;
 
             const elTotal = document.getElementById('admCardTotal');
             const elPend = document.getElementById('admCardPendentes');
             const elAprov = document.getElementById('admCardAprovados');
             const elBloq = document.getElementById('admCardBloqueados');
+            const elOnline = document.getElementById('admCardOnline');
             const badgeSidebar = document.getElementById('badgeAdminPendentesSidebar');
 
             if (elTotal) elTotal.textContent = total;
             if (elPend) elPend.textContent = pendentes;
             if (elAprov) elAprov.textContent = aprovados;
             if (elBloq) elBloq.textContent = bloqueados;
+            if (elOnline) elOnline.textContent = online;
 
             if (badgeSidebar) {
                 if (pendentes > 0) {
@@ -4916,16 +5084,22 @@
 
             let lista = Object.values(cacheUsuariosAdmin || {});
 
-            // Ordena: pendentes primeiro, depois admin, depois por data mais recente
+            // Ordena: primeiro quem está Online agora, depois pendentes, depois admin, depois por último acesso mais recente
             lista.sort((a, b) => {
+                const onlineA = verificarUsuarioOnlineAgora(a);
+                const onlineB = verificarUsuarioOnlineAgora(b);
+                if (onlineA && !onlineB) return -1;
+                if (!onlineA && onlineB) return 1;
                 if (a.status === 'pendente' && b.status !== 'pendente') return -1;
                 if (a.status !== 'pendente' && b.status === 'pendente') return 1;
                 if (ehAdministrador(a.email)) return -1;
                 if (ehAdministrador(b.email)) return 1;
-                return String(b.solicitadoEm || '').localeCompare(String(a.solicitadoEm || ''));
+                return String(b.ultimoAcesso || b.solicitadoEm || '').localeCompare(String(a.ultimoAcesso || a.solicitadoEm || ''));
             });
 
-            if (filtroStatus !== 'TODOS') {
+            if (filtroStatus === 'ONLINE') {
+                lista = lista.filter(u => verificarUsuarioOnlineAgora(u));
+            } else if (filtroStatus !== 'TODOS') {
                 lista = lista.filter(u => {
                     const st = ehAdministrador(u.email) ? 'aprovado' : (u.status || 'pendente');
                     return st === filtroStatus;
@@ -4940,7 +5114,7 @@
             }
 
             if (lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">Nenhum usuário encontrado para o filtro selecionado.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium"><i class="fa-solid fa-users-slash text-2xl mb-2 block text-slate-300"></i>Nenhum usuário encontrado para o filtro selecionado.</td></tr>';
                 return;
             }
 
@@ -4949,8 +5123,49 @@
                 const isAdm = ehAdministrador(email);
                 const nome = u.nome || email.split('@')[0];
                 const status = isAdm ? 'aprovado' : (u.status || 'pendente');
-                const dtSolic = u.solicitadoEm ? new Date(u.solicitadoEm).toLocaleString('pt-BR') : '-';
-                const dtUlt = u.ultimoAcesso ? new Date(u.ultimoAcesso).toLocaleString('pt-BR') : '-';
+                const isOnline = verificarUsuarioOnlineAgora(u);
+
+                // Datas formatadas
+                const dtSolic = formatarDataHoraExata(u.solicitadoEm);
+                const dtUlt = formatarDataHoraExata(u.ultimoAcesso);
+                const relUlt = calcularTempoDecorridoRelativo(u.ultimoAcesso);
+
+                // Tempos de conexão
+                let tempoSessaoAtual = 0;
+                if (isOnline) {
+                    if (u.duracaoSessaoAtualSeg) {
+                        tempoSessaoAtual = Number(u.duracaoSessaoAtualSeg);
+                    } else if (u.inicioSessaoAtual) {
+                        tempoSessaoAtual = Math.max(0, Math.floor((Date.now() - new Date(u.inicioSessaoAtual).getTime()) / 1000));
+                    }
+                }
+                const tempoTotalSeg = Math.max(tempoSessaoAtual, Number(u.tempoTotalConectadoSeg) || 0);
+
+                // Badge de Conexão
+                let badgeConexao = '';
+                if (isOnline) {
+                    const durSessaoTxt = formatarDuracaoAmigavel(tempoSessaoAtual);
+                    badgeConexao = '<div class="flex flex-col gap-0.5">' +
+                        '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 w-fit">' +
+                            '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>' +
+                            '🟢 Online Agora' +
+                        '</span>' +
+                        '<span class="text-[11px] text-emerald-700 font-semibold mt-0.5">' +
+                            '<i class="fa-regular fa-clock"></i> Sessão atual: <strong>' + durSessaoTxt + '</strong>' +
+                        '</span>' +
+                        (tempoTotalSeg > tempoSessaoAtual ? ('<span class="text-[10px] text-slate-500">Total acumulado: ' + formatarDuracaoAmigavel(tempoTotalSeg) + '</span>') : '') +
+                    '</div>';
+                } else {
+                    const totalTxt = tempoTotalSeg > 0 ? formatarDuracaoAmigavel(tempoTotalSeg) : 'Não registrado';
+                    badgeConexao = '<div class="flex flex-col gap-0.5">' +
+                        '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 w-fit">' +
+                            '<i class="fa-solid fa-circle text-slate-400 text-[8px]"></i> Offline / Desconectado' +
+                        '</span>' +
+                        '<span class="text-[11px] text-slate-600 mt-0.5">' +
+                            'Tempo acumulado: <strong class="text-slate-700">' + totalTxt + '</strong>' +
+                        '</span>' +
+                    '</div>';
+                }
 
                 let badgeStatus = '';
                 if (status === 'aprovado') {
@@ -4970,31 +5185,33 @@
                     acoesHtml = '<span class="text-[11px] text-slate-400 italic font-medium">Acesso Permanente</span>';
                 } else {
                     const btnAprovar = status !== 'aprovado'
-                        ? `<button type="button" onclick="alterarStatusUsuarioAdmin('${escH(email)}', 'aprovado')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-colors shadow-xs flex items-center gap-1"><i class="fa-solid fa-check"></i> Autorizar</button>`
+                        ? ('<button type="button" onclick="alterarStatusUsuarioAdmin(\'' + escH(email) + '\', \'aprovado\')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-colors shadow-xs flex items-center gap-1"><i class="fa-solid fa-check"></i> Autorizar</button>')
                         : '';
                     const btnBloquear = status !== 'bloqueado'
-                        ? `<button type="button" onclick="alterarStatusUsuarioAdmin('${escH(email)}', 'bloqueado')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-bold transition-colors shadow-xs flex items-center gap-1"><i class="fa-solid fa-ban"></i> Bloquear</button>`
+                        ? ('<button type="button" onclick="alterarStatusUsuarioAdmin(\'' + escH(email) + '\', \'bloqueado\')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-bold transition-colors shadow-xs flex items-center gap-1"><i class="fa-solid fa-ban"></i> Bloquear</button>')
                         : '';
-                    const btnExcluir = `<button type="button" onclick="excluirUsuarioAdmin('${escH(email)}')" title="Excluir registro" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-[11px] font-semibold transition-colors"><i class="fa-solid fa-trash-can"></i></button>`;
+                    const btnExcluir = '<button type="button" onclick="excluirUsuarioAdmin(\'' + escH(email) + '\')" title="Excluir registro" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-[11px] font-semibold transition-colors"><i class="fa-solid fa-trash-can"></i></button>';
 
-                    acoesHtml = `<div class="flex items-center justify-center gap-1.5">${btnAprovar}${btnBloquear}${btnExcluir}</div>`;
+                    acoesHtml = '<div class="flex items-center justify-center gap-1.5">' + btnAprovar + btnBloquear + btnExcluir + '</div>';
                 }
 
-                return `
-                    <tr class="hover:bg-slate-50/80 transition-colors">
-                        <td class="p-3">
-                            <div class="font-bold text-slate-800">${escH(nome)}</div>
-                            <div class="text-[11px] text-slate-500 font-mono">${escH(email)}</div>
-                        </td>
-                        <td class="p-3 text-[11px] text-slate-500">
-                            <div>Solicitado: <strong class="text-slate-700">${dtSolic}</strong></div>
-                            <div>Últ. acesso: <span>${dtUlt}</span></div>
-                        </td>
-                        <td class="p-3">${badgePerfil}</td>
-                        <td class="p-3 text-center">${badgeStatus}</td>
-                        <td class="p-3 text-center">${acoesHtml}</td>
-                    </tr>
-                `;
+                return '<tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100">' +
+                    '<td class="p-3">' +
+                        '<div class="font-bold text-slate-800 text-xs flex items-center gap-1.5">' +
+                            (isOnline ? '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>' : '') +
+                            escH(nome) +
+                        '</div>' +
+                        '<div class="text-[11px] text-slate-500 font-mono">' + escH(email) + '</div>' +
+                    '</td>' +
+                    '<td class="p-3">' + badgeConexao + '</td>' +
+                    '<td class="p-3 text-[11px] text-slate-600">' +
+                        '<div>Último: <strong class="text-slate-800">' + dtUlt + '</strong> ' + (relUlt ? ('<span class="text-emerald-700 font-semibold">(' + relUlt + ')</span>') : '') + '</div>' +
+                        '<div class="text-slate-400 text-[10px]">Cadastro: ' + dtSolic + '</div>' +
+                    '</td>' +
+                    '<td class="p-3">' + badgePerfil + '</td>' +
+                    '<td class="p-3 text-center">' + badgeStatus + '</td>' +
+                    '<td class="p-3 text-center">' + acoesHtml + '</td>' +
+                '</tr>';
             }).join('');
         };
 
@@ -8864,7 +9081,10 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             }
         }
 
-        // Unifica os registros de auditoria salvos no Firebase com os Centros de Custo reais do Mês de Análise selecionado!
+        // Unifica os registros de auditoria salvos no Firebase com os Centros de Custo do Mês de Análise
+        // REGRA SOLICITADA:
+        // A lista/tabela inferior só deve exibir centros para os quais REALMENTE foi enviado e-mail (marco1, marco2 ou marco3).
+        // Se o gestor já realizou o processo antes do envio ou se não precisou notificar, NÃO lista no inferior.
         function obterHistoricoEnviosPorMesAnalise(compAlvo) {
             const comp = compAlvo || competenciaAtual || '';
             if (!comp) return [];
@@ -8876,17 +9096,22 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             const mesComp = partesComp[0] || '';
             const anoComp = partesComp[1] || '2026';
 
-            // Mapa de registros já salvos para esta competência
+            // Mapa de registros de envios reais salvos para esta competência
             const mapaSalvos = new Map();
             histSalvo.forEach(h => {
                 if (!h || h.competencia !== comp) return;
                 const ch = `${comp}|${normC(h.centro)}`;
                 if (excluidos.has(h.id) || excluidos.has(ch)) return;
+
+                // Só considera envio real se houver dataHora ou algum marco enviado
+                const temEnvioReal = Boolean(h.dataHora || h.marco1Data || h.marco2Data || h.marco3Data);
+                if (!temEnvioReal) return;
+
                 if (!h.marco1Data && h.dataHora) h.marco1Data = h.dataHora;
                 mapaSalvos.set(normC(h.centro), h);
             });
 
-            // Também verifica notificações simples salvas para esta competência
+            // Notificações registradas em LS_NOTIF para esta competência
             Object.entries(notifs).forEach(([k, dt]) => {
                 const p = k.split('|');
                 if (p[0] !== comp) return;
@@ -8914,56 +9139,55 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 });
             });
 
-            // Agora busca os Centros de Custo reais do Mês de Análise (NAO_CONFORME e NAO_CONFORME_JUSTIFICADO)
+            // Cruza com os dados do mês (para trazer orçado, realizado, variação e justificativa atualizada)
             const centrosDoMes = obterResumoCentrosDoMesAnalise(comp);
-            const resultado = [];
-            const centrosProcessados = new Set();
-
+            const mapaResumoMes = new Map();
             centrosDoMes.forEach(cm => {
-                const cNorm = normC(cm.centro);
-                const ch = `${comp}|${cNorm}`;
-                if (excluidos.has(ch)) return;
+                mapaResumoMes.set(normC(cm.centro), cm);
+            });
 
-                centrosProcessados.add(cNorm);
-                const salvo = mapaSalvos.get(cNorm);
-                const g = getGestor(cm.centro);
-                const idPadrao = salvo && salvo.id ? salvo.id : `mes_${comp.replace('/', '')}_${cNorm.replace(/[^a-z0-9]/gi, '_')}`;
+            const resultado = [];
+            mapaSalvos.forEach((salvo, cNorm) => {
+                const ch = `${comp}|${cNorm}`;
+                if (excluidos.has(ch) || excluidos.has(salvo.id)) return;
+
+                const cm = mapaResumoMes.get(cNorm);
+                const g = getGestor(salvo.centro);
+                const jaJustificou = cm ? (cm.statusMes === 'NAO_CONFORME_JUSTIFICADO') : verificarSeCentroJaJustificou(comp, salvo.centro);
+
+                // Se o gestor concluiu/justificou e não se deseja listar os que já concluíram,
+                // ainda podemos filtrar ou apresentar com status de concluído, mas o usuário pediu:
+                // "se foi enviado algum email para o gestor deve aparecer, caso o gestor ja tenha realizado o processo ou não precise, nao precisa de listar no inferior"
+                if (salvo.analiseRealizada || jaJustificou) {
+                    // Se o gestor já realizou o processo, não precisa listar no inferior
+                    return;
+                }
 
                 resultado.push({
-                    id: idPadrao,
-                    dataHora: salvo ? salvo.dataHora : null,
-                    ano: anoComp,
-                    mes: mesComp,
+                    id: salvo.id,
+                    dataHora: salvo.dataHora,
+                    ano: salvo.ano || anoComp,
+                    mes: salvo.mes || mesComp,
                     competencia: comp,
-                    centro: cm.centro,
-                    orcado: cm.orcado,
-                    realizado: cm.realizado,
-                    variacao: cm.variacao,
-                    qtdEstourosSemJust: cm.qtdEstourosSemJust,
-                    statusMes: cm.statusMes,
-                    gestorNome: (salvo && salvo.gestorNome && salvo.gestorNome !== 'Não informado' && salvo.gestorNome !== 'Cadastrado no Sistema') ? salvo.gestorNome : (g ? g.nome : 'Não cadastrado'),
-                    gestorEmail: (salvo && salvo.gestorEmail) ? salvo.gestorEmail : (g ? g.email : ''),
-                    usuarioRemetente: salvo ? salvo.usuarioRemetente : 'Sistema HMDCC',
-                    marco1Data: salvo ? (salvo.marco1Data || salvo.dataHora || null) : null,
-                    marco2Data: salvo ? (salvo.marco2Data || null) : null,
-                    marco3Data: salvo ? (salvo.marco3Data || null) : null,
-                    marco3Protocolo: salvo ? (salvo.marco3Protocolo || '') : '',
-                    analiseRealizada: Boolean((salvo && salvo.analiseRealizada) || cm.statusMes === 'NAO_CONFORME_JUSTIFICADO'),
-                    dataAnaliseRealizada: salvo ? salvo.dataAnaliseRealizada : null
+                    centro: salvo.centro,
+                    orcado: cm ? cm.orcado : (salvo.orcado || 0),
+                    realizado: cm ? cm.realizado : (salvo.realizado || 0),
+                    variacao: cm ? cm.variacao : (salvo.variacao || 0),
+                    qtdEstourosSemJust: cm ? cm.qtdEstourosSemJust : 0,
+                    statusMes: cm ? cm.statusMes : 'NAO_CONFORME',
+                    gestorNome: (salvo.gestorNome && salvo.gestorNome !== 'Não informado' && salvo.gestorNome !== 'Cadastrado no Sistema') ? salvo.gestorNome : (g ? g.nome : 'Não cadastrado'),
+                    gestorEmail: salvo.gestorEmail || (g ? g.email : ''),
+                    usuarioRemetente: salvo.usuarioRemetente || 'Sistema HMDCC',
+                    marco1Data: salvo.marco1Data || salvo.dataHora || null,
+                    marco2Data: salvo.marco2Data || null,
+                    marco3Data: salvo.marco3Data || null,
+                    marco3Protocolo: salvo.marco3Protocolo || '',
+                    analiseRealizada: false,
+                    dataAnaliseRealizada: null
                 });
             });
 
-            // Inclui eventuais registros manuais salvos naquela competência que não estavam na lista acima (se não foram excluídos)
-            mapaSalvos.forEach((salvo, cNorm) => {
-                if (!centrosProcessados.has(cNorm)) {
-                    const ch = `${comp}|${cNorm}`;
-                    if (!excluidos.has(ch) && !excluidos.has(salvo.id)) {
-                        resultado.push(salvo);
-                    }
-                }
-            });
-
-            return resultado;
+            return resultado.sort((a, b) => (b.variacao || 0) - (a.variacao || 0));
         }
 
         function obterHistoricoEnviosUnificado() {
@@ -8978,7 +9202,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             const item = listaAtual.find(h => h.id === idRegistro) || { id: idRegistro, centro: centroParam || '', competencia: compParam || competenciaAtual };
             if (!item || !item.centro) return;
 
-            if (!confirm(`Deseja realmente excluir o centro "${item.centro}" da Auditoria/Régua de Cobrança do mês ${item.competencia || ''}?\n\nEsta ação removerá o registro da tela e do Firebase.`)) {
+            if (!confirm(`Deseja realmente excluir o centro "${item.centro}" da Auditoria/Régua de Cobrança do mês ${item.competencia || ''}?\n\nEsta ação removerá o registro de envio da tela e do Firebase.`)) {
                 return;
             }
 
@@ -9012,7 +9236,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
             renderizarTabelaAuditoriaEnvios();
             if (typeof mostrarAviso === 'function') {
-                mostrarAviso(`🗑️ Centro <strong>${escH(item.centro)}</strong> removido da régua de cobrança de <strong>${escH(item.competencia)}</strong>.`, 3500);
+                mostrarAviso(`🗑️ Registro de envio do centro <strong>${escH(item.centro)}</strong> excluído com sucesso.`, 3500);
             }
         };
 
@@ -9034,7 +9258,6 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             if (origem === 'ANO' && selAno && selComp) {
                 const ano = selAno.value;
                 if (ano !== 'TODOS') {
-                    // Seleciona a primeira competência daquele ano se a atual não for daquele ano
                     const opcoes = Array.from(selComp.options).map(o => o.value).filter(v => v && v.endsWith('/' + ano));
                     if (opcoes.length > 0 && (!selComp.value || !selComp.value.endsWith('/' + ano))) {
                         selComp.value = opcoes[0];
@@ -9149,7 +9372,6 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
         window.abrirModalAuditoriaEnvios = async function () {
             await carregarHistoricoEnviosNuvem();
-            // Sempre sincroniza o filtro com o Mês Ativo atual ao abrir
             popularFiltrosAuditoria(true);
             renderizarTabelaAuditoriaEnvios();
 
@@ -9221,9 +9443,10 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     compsOrdenadas.map(c => `<option value="${escH(c)}">${escH(c)}</option>`).join('');
 
                 if (forcarMesAtivo) {
-                    // Segue estritamente o Mês Ativo setado no topo!
                     if (competenciaAtual && comps.has(competenciaAtual)) {
                         selComp.value = competenciaAtual;
+                    } else if (compsOrdenadas.length > 0) {
+                        selComp.value = compsOrdenadas[0];
                     } else {
                         selComp.value = '';
                     }
@@ -9231,6 +9454,8 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     selComp.value = valAnterior;
                 } else if (competenciaAtual && comps.has(competenciaAtual)) {
                     selComp.value = competenciaAtual;
+                } else if (compsOrdenadas.length > 0) {
+                    selComp.value = compsOrdenadas[0];
                 } else {
                     selComp.value = '';
                 }
@@ -9253,7 +9478,6 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             const setCnt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
             const tbody = document.getElementById('auditTabelaCorpo');
 
-            // Se não houver Mês de Análise selecionado, zera tudo e orienta a selecionar o mês
             if (!fComp) {
                 setCnt('auditCountMarco1', 0);
                 setCnt('auditCountMarco2', 0);
@@ -9267,7 +9491,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                             <td colspan="4" class="p-10 text-center text-slate-500">
                                 <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-amber-500 block"></i>
                                 <div class="font-bold text-slate-700 text-sm">Nenhum Mês de Análise selecionado</div>
-                                <div class="text-xs text-slate-400 mt-1">Selecione um <strong>Mês Ativo</strong> no topo do sistema ou escolha a competência no seletor acima para visualizar os centros e marcos daquele mês.</div>
+                                <div class="text-xs text-slate-400 mt-1">Selecione uma competência no seletor acima para visualizar os e-mails enviados.</div>
                             </td>
                         </tr>
                     `;
@@ -9275,7 +9499,31 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 return;
             }
 
+            // Lista apenas os centros com e-mail EFETIVAMENTE ENVIADO e que ainda NÃO foram concluídos pelo gestor
             const dadosMes = obterHistoricoEnviosPorMesAnalise(fComp);
+
+            // Contagem dos marcos baseada nos envios reais existentes
+            const histCompletoNuvem = lsGet('hmdcc_historico_envios_detalhado', []).filter(h => h && h.competencia === fComp);
+            let cMarco1Enviados = 0, cMarco2Enviados = 0, cMarco3Enviados = 0;
+            histCompletoNuvem.forEach(h => {
+                if (h.marco1Data || h.dataHora) cMarco1Enviados++;
+                if (h.marco2Data) cMarco2Enviados++;
+                if (h.marco3Data) cMarco3Enviados++;
+            });
+
+            // Concluídos / Justificados no Mês
+            const centrosDoMes = obterResumoCentrosDoMesAnalise(fComp);
+            let cConcluido = centrosDoMes.filter(c => c.statusMes === 'NAO_CONFORME_JUSTIFICADO' || verificarSeCentroJaJustificou(fComp, c.centro)).length;
+
+            setCnt('auditCountMarco1', cMarco1Enviados);
+            setCnt('auditCountMarco2', cMarco2Enviados);
+            setCnt('auditCountMarco3', cMarco3Enviados);
+            setCnt('auditCountConcluido', cConcluido);
+
+            const subM1 = document.getElementById('auditSubMarco1');
+            if (subM1) {
+                subM1.textContent = `${cMarco1Enviados} e-mail(s) de lembrete enviado(s)`;
+            }
 
             const baseFiltrada = dadosMes.filter(item => {
                 if (fBusca) {
@@ -9285,33 +9533,10 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 return true;
             });
 
-            let cMarco1 = 0, cMarco1Enviados = 0, cMarco2 = 0, cMarco3 = 0, cConcluido = 0;
             const enriquecidos = baseFiltrada.map(item => {
                 const diag = calcularDiagnosticoMarcosEnvio(item);
-                if (diag.codigoMarco === 'MARCO_1') {
-                    cMarco1++;
-                    if (diag.marco1Efetivo) cMarco1Enviados++;
-                } else if (diag.codigoMarco === 'MARCO_2') {
-                    cMarco2++;
-                } else if (diag.codigoMarco === 'MARCO_3') {
-                    cMarco3++;
-                } else if (diag.codigoMarco === 'CONCLUIDO') {
-                    cConcluido++;
-                }
                 return { item, diag };
             });
-
-            setCnt('auditCountMarco1', cMarco1);
-            setCnt('auditCountMarco2', cMarco2);
-            setCnt('auditCountMarco3', cMarco3);
-            setCnt('auditCountConcluido', cConcluido);
-
-            const subM1 = document.getElementById('auditSubMarco1');
-            if (subM1) {
-                subM1.textContent = cMarco1 > 0
-                    ? `${cMarco1Enviados} enviado(s) • ${cMarco1 - cMarco1Enviados} pendente(s)`
-                    : 'E-mail de Lembrete';
-            }
 
             ['MARCO_1', 'MARCO_2', 'MARCO_3', 'CONCLUIDO'].forEach(cod => {
                 const btn = document.getElementById('cardAuditMarco_' + cod);
@@ -9334,8 +9559,9 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="4" class="p-10 text-center text-slate-400">
-                            <i class="fa-regular fa-envelope-open text-3xl mb-2 text-slate-300 block"></i>
-                            Nenhum centro de custo encontrado neste marco para a competência <strong>${escH(fComp)}</strong>.
+                            <i class="fa-regular fa-envelope text-3xl mb-2 text-slate-300 block"></i>
+                            <div class="font-bold text-slate-700 text-sm">Nenhum envio registrado pendente de realização</div>
+                            <div class="text-xs text-slate-400 mt-1">Os centros de custo só aparecem aqui após o e-mail ser enviado ao gestor. Caso o gestor já tenha realizado ou não precise, ele não é listado.</div>
                         </td>
                     </tr>
                 `;
@@ -9347,17 +9573,19 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 const dtM2 = item.marco2Data ? new Date(item.marco2Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
                 const dtM3 = item.marco3Data ? new Date(item.marco3Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
 
+                // REGRA SOLICITADA: "quando o email for enviado, os cards do referido processo tenham a mesma cor VERDE"
+                // Se o e-mail foi enviado naquele marco, o card fica verde (bg-emerald-100 text-emerald-900 border-emerald-400)
                 const m1Class = dtM1
-                    ? 'bg-amber-100 border-amber-400 text-amber-900'
-                    : (!diag.analiseConcluida ? 'bg-amber-50/80 border-amber-300 text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-400');
+                    ? 'bg-emerald-100 border-emerald-400 text-emerald-900 shadow-2xs font-medium'
+                    : 'bg-slate-50 border-slate-200 text-slate-400';
 
                 const m2Class = dtM2
-                    ? 'bg-orange-100 border-orange-400 text-orange-900'
-                    : (dtM1 && !diag.analiseConcluida ? 'bg-orange-50/60 border-orange-300 text-orange-800' : 'bg-slate-50 border-slate-200 text-slate-400');
+                    ? 'bg-emerald-100 border-emerald-400 text-emerald-900 shadow-2xs font-medium'
+                    : (dtM1 ? 'bg-orange-50/60 border-orange-300 text-orange-800' : 'bg-slate-50 border-slate-200 text-slate-400');
 
                 const m3Class = dtM3
-                    ? 'bg-rose-100 border-rose-400 text-rose-900'
-                    : (dtM2 && !diag.analiseConcluida ? 'bg-rose-50/60 border-rose-300 text-rose-800' : 'bg-slate-50 border-slate-200 text-slate-400');
+                    ? 'bg-emerald-100 border-emerald-400 text-emerald-900 shadow-2xs font-medium'
+                    : (dtM2 ? 'bg-rose-50/60 border-rose-300 text-rose-800' : 'bg-slate-50 border-slate-200 text-slate-400');
 
                 const desvioStr = (typeof item.variacao === 'number' && item.variacao > 0)
                     ? `<div class="text-[10px] font-bold text-rose-600 mt-1"><i class="fa-solid fa-arrow-trend-up mr-1"></i>Desvio no mês: +${formatMoeda(item.variacao)}</div>`
@@ -9385,18 +9613,18 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                             ${desvioStr}
                         </td>
 
-                        <!-- Coluna 2: Linha do Tempo dos 3 Marcos Importantes -->
+                        <!-- Coluna 2: Linha do Tempo dos 3 Marcos Importantes (Ficam Verdes após o envio) -->
                         <td class="p-3 min-w-[360px]">
                             <div class="grid grid-cols-3 gap-2">
                                 <!-- 1º Marco: 7º Dia Útil (Lembrete) -->
                                 <div class="p-2.5 rounded-lg border ${m1Class} transition-all">
                                     <div class="flex items-center justify-between text-[10px] font-extrabold">
                                         <span>1º MARCO (7º D.U.)</span>
-                                        <i class="fa-solid ${dtM1 ? 'fa-check-circle text-amber-600' : 'fa-bell'}"></i>
+                                        <i class="fa-solid ${dtM1 ? 'fa-check-circle text-emerald-600 text-xs' : 'fa-bell'}"></i>
                                     </div>
                                     <div class="text-[10px] font-semibold mt-0.5 leading-tight">E-mail de Lembrete</div>
-                                    <div class="text-[9px] mt-1 font-mono ${dtM1 ? 'font-bold text-amber-950' : 'text-slate-500'}">
-                                        ${dtM1 ? `Enviado: ${dtM1}` : (diag.analiseConcluida ? 'Justificado no prazo' : 'Aguardando envio')}
+                                    <div class="text-[9px] mt-1 font-mono ${dtM1 ? 'font-bold text-emerald-950' : 'text-slate-400'}">
+                                        ${dtM1 ? `<span class="inline-flex items-center gap-1"><i class="fa-solid fa-check text-emerald-600"></i> ${dtM1}</span>` : 'Não enviado'}
                                     </div>
                                 </div>
 
@@ -9404,11 +9632,11 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                                 <div class="p-2.5 rounded-lg border ${m2Class} transition-all">
                                     <div class="flex items-center justify-between text-[10px] font-extrabold">
                                         <span>2º MARCO</span>
-                                        <i class="fa-solid ${dtM2 ? 'fa-check-circle text-orange-600' : 'fa-triangle-exclamation'}"></i>
+                                        <i class="fa-solid ${dtM2 ? 'fa-check-circle text-emerald-600 text-xs' : 'fa-triangle-exclamation'}"></i>
                                     </div>
                                     <div class="text-[10px] font-semibold mt-0.5 leading-tight">E-mail Não Realização</div>
-                                    <div class="text-[9px] mt-1 font-mono ${dtM2 ? 'font-bold text-orange-950' : 'text-slate-500'}">
-                                        ${dtM2 ? `Enviado: ${dtM2}` : 'Aguardando disparo'}
+                                    <div class="text-[9px] mt-1 font-mono ${dtM2 ? 'font-bold text-emerald-950' : 'text-slate-400'}">
+                                        ${dtM2 ? `<span class="inline-flex items-center gap-1"><i class="fa-solid fa-check text-emerald-600"></i> ${dtM2}</span>` : 'Aguardando disparo'}
                                     </div>
                                 </div>
 
@@ -9416,11 +9644,11 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                                 <div class="p-2.5 rounded-lg border ${m3Class} transition-all">
                                     <div class="flex items-center justify-between text-[10px] font-extrabold">
                                         <span>3º MARCO</span>
-                                        <i class="fa-solid ${dtM3 ? 'fa-file-circle-exclamation text-rose-600' : 'fa-ban'}"></i>
+                                        <i class="fa-solid ${dtM3 ? 'fa-check-circle text-emerald-600 text-xs' : 'fa-ban'}"></i>
                                     </div>
                                     <div class="text-[10px] font-semibold mt-0.5 leading-tight">Não Conformidade</div>
-                                    <div class="text-[9px] mt-1 font-mono ${dtM3 ? 'font-bold text-rose-950' : 'text-slate-500'}">
-                                        ${dtM3 ? `${escH(item.marco3Protocolo || 'Aberta')}: ${dtM3}` : 'Se sem resposta'}
+                                    <div class="text-[9px] mt-1 font-mono ${dtM3 ? 'font-bold text-emerald-950' : 'text-slate-400'}">
+                                        ${dtM3 ? `<span class="inline-flex items-center gap-1"><i class="fa-solid fa-check text-emerald-600"></i> ${escH(item.marco3Protocolo || 'RNC')}: ${dtM3}</span>` : 'Se sem resposta'}
                                     </div>
                                 </div>
                             </div>
@@ -9428,8 +9656,8 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
                         <!-- Coluna 3: Situação Atual no Mês -->
                         <td class="p-3 text-center whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${diag.corBadge}">
-                                <i class="${diag.iconeStatus}"></i> ${escH(diag.labelStatus)}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${dtM3 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : (dtM2 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300')}">
+                                <i class="fa-solid fa-paper-plane text-emerald-600"></i> ${escH(diag.labelStatus)}
                             </span>
                             <div class="text-[10px] text-slate-500 font-medium mt-1 max-w-[190px] mx-auto whitespace-normal leading-tight">
                                 ${escH(diag.proximoPasso)}
@@ -9441,30 +9669,30 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                             <div class="flex flex-col gap-1.5 items-stretch min-w-[195px]">
                                 <!-- Botão 1º Marco -->
                                 <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 1, true)"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM1 ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-2xs'}">
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM1 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-2xs'}">
                                     <span><i class="fa-solid fa-bell mr-1"></i>1º Marco: Lembrete (7º d.u.)</span>
-                                    <i class="fa-solid ${dtM1 ? 'fa-rotate-right' : 'fa-paper-plane'} text-[9px]"></i>
+                                    <i class="fa-solid ${dtM1 ? 'fa-check text-emerald-600' : 'fa-paper-plane'} text-[9px]"></i>
                                 </button>
 
                                 <!-- Botão 2º Marco -->
                                 <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 2, true)"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM2 ? 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100' : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-700 shadow-2xs'}">
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM2 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-700 shadow-2xs'}">
                                     <span><i class="fa-solid fa-envelope-open-text mr-1"></i>2º Marco: Não Realização</span>
-                                    <i class="fa-solid ${dtM2 ? 'fa-rotate-right' : 'fa-paper-plane'} text-[9px]"></i>
+                                    <i class="fa-solid ${dtM2 ? 'fa-check text-emerald-600' : 'fa-paper-plane'} text-[9px]"></i>
                                 </button>
 
                                 <!-- Botão 3º Marco -->
                                 <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 3, true)"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM3 ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs'}">
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM3 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs'}">
                                     <span><i class="fa-solid fa-file-circle-exclamation mr-1"></i>3º Marco: Não Conformidade</span>
-                                    <i class="fa-solid ${dtM3 ? 'fa-pen' : 'fa-gavel'} text-[9px]"></i>
+                                    <i class="fa-solid ${dtM3 ? 'fa-check text-emerald-600' : 'fa-gavel'} text-[9px]"></i>
                                 </button>
 
                                 <!-- Linha inferior: Concluir e Excluir -->
                                 <div class="flex items-center gap-1.5">
                                     <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 4, false)"
-                                        class="flex-1 px-2 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 ${diag.analiseConcluida ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200' : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border-slate-300'}">
-                                        <i class="fa-solid fa-check"></i> ${diag.analiseConcluida ? 'Concluída' : 'Marcar Realizada'}
+                                        class="flex-1 px-2 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border-slate-300">
+                                        <i class="fa-solid fa-check"></i> Marcar Realizada
                                     </button>
                                     <button type="button" onclick="excluirRegistroAuditoriaEnvio('${escH(item.id)}', '${escH(item.centro)}', '${escH(item.competencia)}')"
                                         title="Excluir este centro da régua de cobrança deste mês"
@@ -9478,7 +9706,6 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 `;
             }).join('');
         };
-
         window.exportarAuditoriaEnviosCSV = function () {
             const dados = obterHistoricoEnviosUnificado();
             if (dados.length === 0) {
@@ -9498,6 +9725,208 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
             const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
             baixarBlob(blob, `auditoria_marcos_cobranca_hmdcc_${new Date().toISOString().slice(0, 10)}.csv`);
+        };
+
+        // Exportação em PDF com todas as informações visuais da tela de auditoria
+        window.exportarAuditoriaEnviosPDF = function () {
+            const selComp = document.getElementById('auditFiltroComp');
+            const comp = selComp ? selComp.value : (competenciaAtual || '');
+            if (!comp) {
+                alert('Selecione um Mês de Análise com dados para exportar o PDF.');
+                return;
+            }
+
+            const dados = obterHistoricoEnviosUnificado();
+            const elM1 = document.getElementById('auditCountMarco1');
+            const elM2 = document.getElementById('auditCountMarco2');
+            const elM3 = document.getElementById('auditCountMarco3');
+            const elConc = document.getElementById('auditCountConcluido');
+
+            const cM1 = elM1 ? elM1.textContent : '0';
+            const cM2 = elM2 ? elM2.textContent : '0';
+            const cM3 = elM3 ? elM3.textContent : '0';
+            const cConc = elConc ? elConc.textContent : '0';
+
+            const agoraData = new Date().toLocaleString('pt-BR');
+
+            let linhasTabelaHtml = '';
+            if (dados.length === 0) {
+                linhasTabelaHtml = `
+                    <tr>
+                        <td colspan="4" class="p-6 text-center text-slate-400 italic">
+                            Nenhum envio registrado pendente de realização no mês selecionado.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                linhasTabelaHtml = dados.map(item => {
+                    const diag = calcularDiagnosticoMarcosEnvio(item);
+                    const dtM1 = diag.marco1Efetivo ? new Date(diag.marco1Efetivo).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+                    const dtM2 = item.marco2Data ? new Date(item.marco2Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+                    const dtM3 = item.marco3Data ? new Date(item.marco3Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+
+                    const m1Box = dtM1
+                        ? `<div class="p-2 rounded border border-emerald-400 bg-emerald-50 text-emerald-900 font-medium">
+                                <div class="font-extrabold text-[10px] flex items-center justify-between">1º MARCO (7º D.U.) <i class="fa-solid fa-check-circle text-emerald-600"></i></div>
+                                <div class="text-[9px] mt-0.5">Lembrete: ${dtM1}</div>
+                           </div>`
+                        : `<div class="p-2 rounded border border-slate-200 bg-slate-50 text-slate-400">
+                                <div class="font-bold text-[10px]">1º MARCO (7º D.U.)</div>
+                                <div class="text-[9px] mt-0.5">Não enviado</div>
+                           </div>`;
+
+                    const m2Box = dtM2
+                        ? `<div class="p-2 rounded border border-emerald-400 bg-emerald-50 text-emerald-900 font-medium">
+                                <div class="font-extrabold text-[10px] flex items-center justify-between">2º MARCO <i class="fa-solid fa-check-circle text-emerald-600"></i></div>
+                                <div class="text-[9px] mt-0.5">Não Realização: ${dtM2}</div>
+                           </div>`
+                        : `<div class="p-2 rounded border border-slate-200 bg-slate-50 text-slate-400">
+                                <div class="font-bold text-[10px]">2º MARCO</div>
+                                <div class="text-[9px] mt-0.5">Aguardando</div>
+                           </div>`;
+
+                    const m3Box = dtM3
+                        ? `<div class="p-2 rounded border border-emerald-400 bg-emerald-50 text-emerald-900 font-medium">
+                                <div class="font-extrabold text-[10px] flex items-center justify-between">3º MARCO <i class="fa-solid fa-check-circle text-emerald-600"></i></div>
+                                <div class="text-[9px] mt-0.5">${escH(item.marco3Protocolo || 'RNC')}: ${dtM3}</div>
+                           </div>`
+                        : `<div class="p-2 rounded border border-slate-200 bg-slate-50 text-slate-400">
+                                <div class="font-bold text-[10px]">3º MARCO</div>
+                                <div class="text-[9px] mt-0.5">Se sem resposta</div>
+                           </div>`;
+
+                    const desvioHtml = (typeof item.variacao === 'number' && item.variacao > 0)
+                        ? `<div class="text-[10px] font-bold text-rose-600 mt-1">Desvio no mês: +${formatMoeda(item.variacao)}</div>`
+                        : '';
+
+                    return `
+                        <tr class="border-b border-slate-200 align-top">
+                            <td class="p-3">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-200">
+                                        ${escH(item.competencia || comp)}
+                                    </span>
+                                    <strong class="text-xs text-slate-800">${escH(item.centro)}</strong>
+                                </div>
+                                <div class="text-[11px] text-slate-600 font-medium"><i class="fa-regular fa-user text-slate-400 mr-1"></i>${escH(item.gestorNome || 'Gestor Responsável')}</div>
+                                <div class="text-[10px] text-slate-500 font-mono"><i class="fa-regular fa-envelope text-slate-400 mr-1"></i>${escH(item.gestorEmail || 'Sem e-mail cadastrado')}</div>
+                                ${desvioHtml}
+                            </td>
+                            <td class="p-3">
+                                <div class="grid grid-cols-3 gap-2">
+                                    ${m1Box}
+                                    ${m2Box}
+                                    ${m3Box}
+                                </div>
+                            </td>
+                            <td class="p-3 text-center whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    <i class="fa-solid fa-paper-plane"></i> ${escH(diag.labelStatus)}
+                                </span>
+                                <div class="text-[10px] text-slate-500 font-medium mt-1 leading-tight">${escH(diag.proximoPasso)}</div>
+                            </td>
+                            <td class="p-3 text-center text-[10px] text-slate-600">
+                                <div class="font-semibold text-slate-700">${item.dataHora ? 'Envio Inicial Registrado' : 'Marco Acionado'}</div>
+                                <div class="text-[9px] text-slate-400">${item.dataHora ? new Date(item.dataHora).toLocaleString('pt-BR') : '-'}</div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="utf-8">
+                    <title>Auditoria de Envios & Régua de Cobrança - ${comp} - HMDCC</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                    <style>
+                        body { font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 11px; }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                            @page { margin: 1cm; size: A4 landscape; }
+                            .no-print { display: none !important; }
+                        }
+                    </style>
+                </head>
+                <body class="p-6 bg-white text-slate-900" onload="window.print()">
+                    <div class="max-w-6xl mx-auto space-y-4">
+                        <!-- Topo Executivo do Relatório -->
+                        <div class="p-4 rounded-xl bg-gradient-to-r from-[#05604e] via-[#06745e] to-[#044f40] text-white flex justify-between items-center shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-[#00ab97] text-slate-900 flex items-center justify-center font-bold text-lg">
+                                    <i class="fa-solid fa-envelopes-bulk"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h2 class="font-bold text-base text-white">Auditoria de Envios & Régua de Cobrança aos Gestores</h2>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-900">
+                                            Mês de Análise: ${escH(comp)}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-emerald-100 mt-0.5">Hospital Metropolitano Doutor Célio de Castro (HMDCC) • Gestão de Custos e Orçamento</p>
+                                </div>
+                            </div>
+                            <div class="text-right text-[11px] text-emerald-100">
+                                <div>Emitido em: <strong class="text-white">${agoraData}</strong></div>
+                                <div>Total de Centros em Cobrança: <strong class="text-white">${dados.length}</strong></div>
+                            </div>
+                        </div>
+
+                        <!-- 4 Cards de Resumo dos Marcos -->
+                        <div class="grid grid-cols-4 gap-3">
+                            <div class="p-3 rounded-xl border border-amber-200 bg-amber-50/70">
+                                <span class="text-[10px] font-bold text-amber-700 uppercase">1º Marco (7º Dia Útil)</span>
+                                <div class="text-2xl font-black text-amber-800 mt-0.5">${cM1}</div>
+                                <span class="text-[10px] text-amber-700 font-medium">E-mail de Lembrete</span>
+                            </div>
+                            <div class="p-3 rounded-xl border border-orange-200 bg-orange-50/70">
+                                <span class="text-[10px] font-bold text-orange-700 uppercase">2º Marco Importante</span>
+                                <div class="text-2xl font-black text-orange-800 mt-0.5">${cM2}</div>
+                                <span class="text-[10px] text-orange-700 font-medium">E-mail Não Realização</span>
+                            </div>
+                            <div class="p-3 rounded-xl border border-rose-200 bg-rose-50/70">
+                                <span class="text-[10px] font-bold text-rose-700 uppercase">3º Marco Importante</span>
+                                <div class="text-2xl font-black text-rose-800 mt-0.5">${cM3}</div>
+                                <span class="text-[10px] text-rose-700 font-medium">Não Conformidade (RNC)</span>
+                            </div>
+                            <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/70">
+                                <span class="text-[10px] font-bold text-emerald-700 uppercase">Análise Realizada</span>
+                                <div class="text-2xl font-black text-emerald-800 mt-0.5">${cConc}</div>
+                                <span class="text-[10px] text-emerald-700 font-medium">Concluídos / Justificados</span>
+                            </div>
+                        </div>
+
+                        <!-- Tabela de Registros com Cores e Status -->
+                        <div class="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3">Centro de Custo & Gestor</th>
+                                        <th class="p-3">Linha do Tempo dos Marcos Importantes</th>
+                                        <th class="p-3 text-center">Marco / Situação no Mês</th>
+                                        <th class="p-3 text-center">Registro de Disparo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${linhasTabelaHtml}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Rodapé -->
+                        <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-500">
+                            <div>Régua de Cobrança: 6 dias úteis para análise ➔ 7º dia útil: 1º Marco (Lembrete) ➔ 2º Marco: E-mail Não Realização ➔ 3º Marco: RNC.</div>
+                            <div>Relatório de Auditoria HMDCC • Documento Oficial</div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
         };
 
         window.abrirModalGestores = function (centroPre) {
