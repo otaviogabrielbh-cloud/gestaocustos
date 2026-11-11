@@ -3552,105 +3552,200 @@
         </div>
     </div>
 
-    <!-- MODAL AUDITORIA E HISTÓRICO DE ENVIOS DE E-MAILS -->
+    <!-- MODAL AUDITORIA E HISTÓRICO DE ENVIOS DE E-MAILS (RÉGUA DE MARCOS E PRAZOS) -->
     <div id="modalAuditoriaEnvios"
-        class="modal-overlay fixed inset-0 bg-slate-900/70 backdrop-blur-md hidden items-center justify-center z-[10000] p-3 sm:p-4">
-        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+        class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10000] p-2 sm:p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[94vh] flex flex-col overflow-hidden border border-slate-200">
             <!-- Topo do Modal -->
-            <div class="p-4 bg-[#05604e] text-white flex justify-between items-center shadow-sm">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-[#00ab97] flex items-center justify-center text-slate-900 font-bold">
+            <div class="px-5 py-4 bg-gradient-to-r from-[#05604e] via-[#06745e] to-[#044f40] text-white flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#00ab97] flex items-center justify-center text-slate-900 font-bold shadow-inner text-lg">
                         <i class="fa-solid fa-envelopes-bulk"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-sm leading-tight text-white">Auditoria de Envios de E-mails aos Gestores</h3>
-                        <p class="text-[11px] text-emerald-100">Controle e rastreabilidade de cobrança por Mês, Ano e Competência</p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="font-bold text-base leading-tight text-white">Auditoria de Envios & Régua de Cobrança aos Gestores</h3>
+                            <span id="auditHeaderBadgeMesAnalise" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-900 shadow-2xs">
+                                <i class="fa-regular fa-calendar-check mr-1"></i>Mês de Análise: --
+                            </span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-100 border border-emerald-300/30">
+                                <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Sincronizado no Firebase
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-emerald-100 mt-0.5">Acompanhamento dos centros de custo do Mês de Análise nos 3 Marcos Importantes de Cobrança</p>
                     </div>
                 </div>
-                <button onclick="fecharModalAuditoriaEnvios()" class="text-emerald-100 hover:text-white p-1.5 transition-colors">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <button onclick="fecharModalAuditoriaEnvios()" class="text-emerald-100 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
 
-            <!-- Corpo do Modal com Filtros e Métricas -->
-            <div class="p-5 space-y-4 overflow-y-auto text-xs bg-slate-50/50">
-                <!-- Cards de Resumo Rápido -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total de Envios Registrados</span>
-                            <div id="auditTotalEnvios" class="text-xl font-bold text-slate-800 mt-0.5">0</div>
-                        </div>
-                        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#00ab97] flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </div>
+            <!-- Corpo do Modal com Régua Visual, Cards de Marcos, Filtros e Tabela -->
+            <div class="p-4 sm:p-5 space-y-4 overflow-y-auto text-xs bg-slate-50 flex-1">
+                
+                <!-- Régua Explicativa dos 3 Marcos Importantes -->
+                <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-2xs">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2.5">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-route text-[#00ab97]"></i> Marcos Importantes de Cobrança do Mês de Análise (Após os 6 Dias Úteis de Prazo Inicial)
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-medium">Clique nos cards abaixo para filtrar por etapa ou ver todos</span>
                     </div>
-
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Centros Notificados</span>
-                            <div id="auditTotalCentrosNotificados" class="text-xl font-bold text-slate-800 mt-0.5">0</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                        <!-- 1º Marco Importante -->
+                        <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/80 border border-amber-200">
+                            <div class="w-7 h-7 rounded-lg bg-amber-500 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-2xs">
+                                1º
+                            </div>
+                            <div>
+                                <div class="font-bold text-amber-950 text-[11px] flex items-center gap-1">
+                                    1º Marco Importante <span class="px-1.5 py-0.2 bg-amber-200/80 text-amber-900 rounded text-[9px] font-extrabold">7º DIA ÚTIL</span>
+                                </div>
+                                <p class="text-[10px] text-amber-800 leading-snug mt-0.5">Não realizada a análise nos 6 dias úteis: envio do <strong>E-mail de Lembrete</strong> no <strong>7º dia útil</strong>.</p>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-hospital-user"></i>
+                        <!-- 2º Marco Importante -->
+                        <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-orange-50/80 border border-orange-200">
+                            <div class="w-7 h-7 rounded-lg bg-orange-600 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-2xs">
+                                2º
+                            </div>
+                            <div>
+                                <div class="font-bold text-orange-950 text-[11px] flex items-center gap-1">
+                                    2º Marco Importante <span class="px-1.5 py-0.2 bg-orange-200/80 text-orange-900 rounded text-[9px] font-extrabold">PÓS-LEMBRETE</span>
+                                </div>
+                                <p class="text-[10px] text-orange-800 leading-snug mt-0.5">Após o período do lembrete sem realização: envio formal do <strong>E-mail de Não Realização</strong> da análise.</p>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Competência Selecionada</span>
-                            <div id="auditBadgeCompetencia" class="text-sm font-bold text-slate-800 mt-1">Todas</div>
-                        </div>
-                        <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-calendar-check"></i>
+                        <!-- 3º Marco Importante -->
+                        <div class="flex items-start gap-2.5 p-2.5 rounded-lg bg-rose-50/80 border border-rose-200">
+                            <div class="w-7 h-7 rounded-lg bg-rose-600 text-white font-bold flex items-center justify-center shrink-0 text-xs shadow-2xs">
+                                3º
+                            </div>
+                            <div>
+                                <div class="font-bold text-rose-950 text-[11px] flex items-center gap-1">
+                                    3º Marco Importante <span class="px-1.5 py-0.2 bg-rose-200/80 text-rose-900 rounded text-[9px] font-extrabold">SEM RESPOSTA</span>
+                                </div>
+                                <p class="text-[10px] text-rose-800 leading-snug mt-0.5">Permanecendo sem resposta após o 2º marco: registro e <strong>Abertura de Não Conformidade</strong> formal.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Barra de Filtros (Ano, Mês / Competência e Busca por Centro/Gestor) -->
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-                    <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <!-- 4 Cards Interativos de Resumo por Marco / Status (Sincronizados com o Mês de Análise) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <button type="button" onclick="filtrarAuditoriaPorMarco('MARCO_1')" id="cardAuditMarco_MARCO_1"
+                        class="text-left bg-white p-3.5 rounded-xl border border-amber-200 shadow-2xs hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">1º Marco (7º Dia Útil)</span>
+                            <div id="auditCountMarco1" class="text-2xl font-black text-amber-600 mt-0.5">0</div>
+                            <span id="auditSubMarco1" class="text-[10px] text-amber-700 font-medium block">E-mail de Lembrete</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="filtrarAuditoriaPorMarco('MARCO_2')" id="cardAuditMarco_MARCO_2"
+                        class="text-left bg-white p-3.5 rounded-xl border border-orange-200 shadow-2xs hover:border-orange-400 hover:shadow-md transition-all flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-orange-600 uppercase tracking-wider block">2º Marco Importante</span>
+                            <div id="auditCountMarco2" class="text-2xl font-black text-orange-600 mt-0.5">0</div>
+                            <span class="text-[10px] text-orange-700 font-medium block">E-mail Não Realização</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="filtrarAuditoriaPorMarco('MARCO_3')" id="cardAuditMarco_MARCO_3"
+                        class="text-left bg-white p-3.5 rounded-xl border border-rose-200 shadow-2xs hover:border-rose-400 hover:shadow-md transition-all flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">3º Marco Importante</span>
+                            <div id="auditCountMarco3" class="text-2xl font-black text-rose-600 mt-0.5">0</div>
+                            <span class="text-[10px] text-rose-700 font-medium block">Não Conformidade</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-file-circle-exclamation"></i>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="filtrarAuditoriaPorMarco('CONCLUIDO')" id="cardAuditMarco_CONCLUIDO"
+                        class="text-left bg-white p-3.5 rounded-xl border border-emerald-200 shadow-2xs hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Análise Realizada</span>
+                            <div id="auditCountConcluido" class="text-2xl font-black text-emerald-700 mt-0.5">0</div>
+                            <span class="text-[10px] text-emerald-700 font-medium block">Concluídos / Justificados no Mês</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Elementos ocultos de compatibilidade -->
+                <div class="hidden">
+                    <span id="auditTotalEnvios">0</span>
+                    <span id="auditSubTotalCentros">0</span>
+                    <span id="auditTotalCentrosNotificados">0</span>
+                    <span id="auditBadgeCompetencia">Todas</span>
+                    <span id="auditCountNoPrazo">0</span>
+                </div>
+
+                <!-- Barra de Filtros (Mês de Análise, Marco/Etapa e Busca) -->
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                    <div class="flex flex-col lg:flex-row gap-3 items-end justify-between">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full lg:w-auto">
                             <!-- Filtro de Ano -->
-                            <div class="w-full sm:w-36">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Filtrar por Ano</label>
-                                <select id="auditFiltroAno" onchange="renderizarTabelaAuditoriaEnvios()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Ano de Referência</label>
+                                <select id="auditFiltroAno" onchange="aoMudarFiltroCompetenciaAuditoria('ANO')" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
                                     <option value="TODOS">Todos os Anos</option>
                                 </select>
                             </div>
 
                             <!-- Filtro de Mês / Competência -->
-                            <div class="w-full sm:w-44">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Competência (Mês/Ano)</label>
-                                <select id="auditFiltroComp" onchange="renderizarTabelaAuditoriaEnvios()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
-                                    <option value="TODAS">Todas as Competências</option>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Mês de Análise (Competência)</label>
+                                <select id="auditFiltroComp" onchange="aoMudarFiltroCompetenciaAuditoria('COMP')" class="w-full px-2.5 py-1.5 bg-emerald-50/60 border border-[#00ab97] text-slate-900 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                                    <option value="">Selecione um mês...</option>
+                                </select>
+                            </div>
+
+                            <!-- Filtro por Marco / Situação -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Filtrar por Marco / Etapa</label>
+                                <select id="auditFiltroMarco" onchange="renderizarTabelaAuditoriaEnvios()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                                    <option value="TODOS">Todos do Mês (Pendentes + Concluídos)</option>
+                                    <option value="MARCO_1">🔔 1º Marco: Lembrete (7º Dia Útil)</option>
+                                    <option value="MARCO_2">⚠️ 2º Marco: E-mail de Não Realização</option>
+                                    <option value="MARCO_3">🚨 3º Marco: Abertura de Não Conformidade</option>
+                                    <option value="CONCLUIDO">✅ Análise Realizada / Justificados</option>
                                 </select>
                             </div>
                         </div>
 
                         <!-- Busca textual rápida -->
-                        <div class="w-full sm:w-64">
+                        <div class="w-full lg:w-72">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Buscar Centro / Gestor / E-mail</label>
                             <div class="relative">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                                <input type="text" id="auditBuscaTexto" oninput="renderizarTabelaAuditoriaEnvios()" placeholder="Filtrar por nome ou e-mail..."
+                                <input type="text" id="auditBuscaTexto" oninput="renderizarTabelaAuditoriaEnvios()" placeholder="Filtrar por centro, gestor ou e-mail..."
                                     class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tabela de Registros de Auditoria -->
+                <!-- Tabela de Registros de Auditoria e Marcos -->
                 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-                    <div class="overflow-x-auto max-h-[46vh]">
+                    <div class="overflow-x-auto max-h-[48vh]">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
+                            <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
                                 <tr>
-                                    <th class="p-3">Competência</th>
-                                    <th class="p-3">Arquivo Armazenado</th>
-                                    <th class="p-3">Contas Processadas</th>
-                                    <th class="p-3">Data de Armazenamento</th>
-                                    <th class="p-3 text-center">Ações Rápidas</th>
+                                    <th class="p-3">Centro de Custo & Gestor (Mês de Análise)</th>
+                                    <th class="p-3">Linha do Tempo dos Marcos Importantes</th>
+                                    <th class="p-3 text-center">Marco / Situação no Mês</th>
+                                    <th class="p-3 text-center">Ações do Marco (Disparo, Registro & Exclusão)</th>
                                 </tr>
                             </thead>
                             <tbody id="auditTabelaCorpo" class="divide-y divide-slate-100 text-xs">
@@ -3662,15 +3757,14 @@
             </div>
 
             <!-- Rodapé do Modal -->
-            <div class="p-3.5 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="px-5 py-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 <div class="text-slate-500 text-[11px] flex items-center gap-1.5">
                     <i class="fa-solid fa-circle-info text-[#00ab97]"></i>
-                    Registros salvos e sincronizados automaticamente na nuvem e no navegador.
+                    <span>Sincronizado com os centros e justificativas do <strong>Mês de Análise</strong>: <strong>1º Marco (7º d.u.)</strong> ➔ <strong>2º Marco (Não Realização)</strong> ➔ <strong>3º Marco (Não Conformidade)</strong>.</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    
                     <button type="button" onclick="exportarAuditoriaEnviosCSV()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-csv text-emerald-600"></i> Exportar CSV
+                        <i class="fa-solid fa-file-csv text-emerald-600"></i> Exportar CSV do Mês
                     </button>
                     <button type="button" onclick="fecharModalAuditoriaEnvios()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg transition-colors">
                         Fechar
@@ -3953,23 +4047,121 @@
 
             <div id="modalCorpoCaptura" class="p-6 space-y-5 overflow-y-auto flex-1">
                 <div id="modalNotificar"
-                    class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div class="text-xs text-slate-700">
-                        <p class="font-bold text-rose-700"><i class="fa-solid fa-triangle-exclamation"></i> Estouro sem
-                            justificativa registrada</p>
-                        <p id="notifInfo" class="mt-0.5"></p>
-                        <p id="notifUltima" class="text-[11px] text-slate-400 italic"></p>
+                    class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3.5 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="text-xs text-slate-700">
+                            <p class="font-bold text-rose-700"><i class="fa-solid fa-triangle-exclamation"></i> Estouro sem
+                                justificativa registrada</p>
+                            <p id="notifInfo" class="mt-0.5"></p>
+                            <p id="notifUltima" class="text-[11px] text-slate-500 italic"></p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button id="btnCopiarWhatsAppGestor" type="button"
+                                class="px-3 py-2 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer shadow-2xs"
+                                title="Copiar cobrança formatada para colar no WhatsApp ou Teams">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> Copiar p/ WhatsApp
+                            </button>
+                            <button id="btnNotificarGestor" type="button"
+                                class="px-3.5 py-2 text-xs font-bold bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer shadow-xs">
+                                <i class="fa-solid fa-envelope"></i> Notificar gestor <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button id="btnCopiarWhatsAppGestor" type="button"
-                            class="px-3 py-2 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer shadow-2xs"
-                            title="Copiar cobrança formatada para colar no WhatsApp ou Teams">
-                            <i class="fa-brands fa-whatsapp text-sm"></i> Copiar p/ WhatsApp
-                        </button>
-                        <button id="btnNotificarGestor"
-                            class="px-3.5 py-2 text-xs font-semibold bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors flex items-center gap-1.5 shrink-0">
-                            <i class="fa-solid fa-envelope"></i> Notificar gestor
-                        </button>
+
+                    <!-- Painel de Opções de Notificação ao Gestor (7º Dia Útil / Não Realização / RNC) -->
+                    <div id="painelOpcoesNotificarGestor" class="hidden pt-3 border-t border-rose-200/80 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane text-rose-600"></i> Selecione a Opção de Notificação para Disparar ao Gestor:
+                            </span>
+                            <button type="button" onclick="document.getElementById('painelOpcoesNotificarGestor').classList.add('hidden')"
+                                class="text-[11px] text-slate-400 hover:text-slate-700 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-xmark"></i> Fechar opções
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                            <!-- Opção 1: 7º Dia Útil -->
+                            <button type="button" id="btnOpcaoNotifMarco1" onclick="dispararNotificacaoGestorPorOpcao(window.centroModalAtual, 1)"
+                                class="text-left p-3 rounded-xl bg-white hover:bg-amber-50 border-2 border-amber-300 hover:border-amber-500 transition-all shadow-2xs hover:shadow-md flex flex-col justify-between gap-2 cursor-pointer group">
+                                <div>
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="px-2 py-0.5 rounded bg-amber-500 text-white text-[10px] font-extrabold uppercase">
+                                            1º Marco • 7º Dia Útil
+                                        </span>
+                                        <span id="statusBadgeOpcaoMarco1" class="text-[10px] font-bold text-amber-700">
+                                            <i class="fa-solid fa-bell"></i> Lembrete
+                                        </span>
+                                    </div>
+                                    <div class="font-extrabold text-slate-900 text-xs mt-1.5 group-hover:text-amber-900">
+                                        7º Dia Útil
+                                    </div>
+                                    <p class="text-[10px] text-slate-600 leading-snug mt-0.5">
+                                        Envia o e-mail de lembrete informando que o prazo de 6 dias úteis encerrou sem análise.
+                                    </p>
+                                </div>
+                                <div class="pt-1.5 border-t border-amber-100 flex items-center justify-between text-[10px] font-bold text-amber-700">
+                                    <span id="infoDataOpcaoMarco1">Clique para enviar</span>
+                                    <span class="inline-flex items-center gap-1 bg-amber-100 px-2 py-0.5 rounded text-amber-900 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                                        Enviar <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                    </span>
+                                </div>
+                            </button>
+
+                            <!-- Opção 2: Não Realização da Análise Orçamentária -->
+                            <button type="button" id="btnOpcaoNotifMarco2" onclick="dispararNotificacaoGestorPorOpcao(window.centroModalAtual, 2)"
+                                class="text-left p-3 rounded-xl bg-white hover:bg-orange-50 border-2 border-orange-300 hover:border-orange-500 transition-all shadow-2xs hover:shadow-md flex flex-col justify-between gap-2 cursor-pointer group">
+                                <div>
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="px-2 py-0.5 rounded bg-orange-600 text-white text-[10px] font-extrabold uppercase">
+                                            2º Marco Importante
+                                        </span>
+                                        <span id="statusBadgeOpcaoMarco2" class="text-[10px] font-bold text-orange-700">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Cobrança
+                                        </span>
+                                    </div>
+                                    <div class="font-extrabold text-slate-900 text-xs mt-1.5 group-hover:text-orange-900">
+                                        Não Realização da Análise Orçamentária
+                                    </div>
+                                    <p class="text-[10px] text-slate-600 leading-snug mt-0.5">
+                                        Notifica formalmente a não realização da análise após o lembrete do 7º dia útil.
+                                    </p>
+                                </div>
+                                <div class="pt-1.5 border-t border-orange-100 flex items-center justify-between text-[10px] font-bold text-orange-700">
+                                    <span id="infoDataOpcaoMarco2">Clique para enviar</span>
+                                    <span class="inline-flex items-center gap-1 bg-orange-100 px-2 py-0.5 rounded text-orange-900 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                        Enviar <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                    </span>
+                                </div>
+                            </button>
+
+                            <!-- Opção 3: Relatório de Não Conformidade (RNC) -->
+                            <button type="button" id="btnOpcaoNotifMarco3" onclick="dispararNotificacaoGestorPorOpcao(window.centroModalAtual, 3)"
+                                class="text-left p-3 rounded-xl bg-white hover:bg-rose-50 border-2 border-rose-300 hover:border-rose-600 transition-all shadow-2xs hover:shadow-md flex flex-col justify-between gap-2 cursor-pointer group">
+                                <div>
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-extrabold uppercase">
+                                            3º Marco • RNC
+                                        </span>
+                                        <span id="statusBadgeOpcaoMarco3" class="text-[10px] font-bold text-rose-700">
+                                            <i class="fa-solid fa-file-circle-exclamation"></i> RNC
+                                        </span>
+                                    </div>
+                                    <div class="font-extrabold text-slate-900 text-xs mt-1.5 group-hover:text-rose-900">
+                                        Relatório de Não Conformidade (RNC)
+                                    </div>
+                                    <p class="text-[10px] text-slate-600 leading-snug mt-0.5">
+                                        Registra e envia a Abertura de Não Conformidade (RNC) por ausência de resposta.
+                                    </p>
+                                </div>
+                                <div class="pt-1.5 border-t border-rose-100 flex items-center justify-between text-[10px] font-bold text-rose-700">
+                                    <span id="infoDataOpcaoMarco3">Clique para abrir RNC</span>
+                                    <span class="inline-flex items-center gap-1 bg-rose-100 px-2 py-0.5 rounded text-rose-900 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                                        Enviar RNC <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                    </span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <!-- Seção 1: CUSTOS E DESPESAS (Gastos Operacionais) -->
@@ -8379,39 +8571,257 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
         // =========================================================
         const FS_COL_ENVIOS = 'historico_envios_emails';
+        const LS_ENVIOS_EXCLUIDOS = 'hmdcc_historico_envios_excluidos';
 
-        async function registrarEnvioEmailAuditoria(centro, destinatarioEmail, nomeGestor, competencia) {
-            const comp = (competencia && competencia !== 'Vigente') ? competencia : ((competenciaAtual && competenciaAtual !== 'Vigente') ? competenciaAtual : '09/2026');
-            const agora = new Date();
-            const anoEnvio = String(agora.getFullYear());
-            const mesEnvio = String(agora.getMonth() + 1).padStart(2, '0');
-            const dataHoraIso = agora.toISOString();
+        // Obtém as linhas da planilha de uma competência específica (Mês Ativo ou Repositório)
+        function obterDadosPlanilhaPorCompetencia(comp) {
+            if (!comp || comp === 'TODAS' || comp === 'Vigente') return [];
+            if (competenciaAtual === comp && Array.isArray(rawExcelData) && rawExcelData.length > 0) {
+                return rawExcelData;
+            }
+            try {
+                const repo = obterRepositorioCompetencias();
+                if (repo && repo[comp] && Array.isArray(repo[comp].data)) {
+                    return repo[comp].data;
+                }
+            } catch (e) {}
+            return [];
+        }
 
-            // Salvar no estado local de notificações
+        // Calcula a situação real dos Centros de Custo no Mês de Análise (idêntico à Justificativa Gestor)
+        function obterResumoCentrosDoMesAnalise(comp) {
+            const linhasMes = obterDadosPlanilhaPorCompetencia(comp);
+            if (!linhasMes || linhasMes.length === 0) return [];
+
+            // Usa os Centros e Contas selecionados na Justificativa Gestor
+            const temFiltroCentros = typeof centrosSelecionadosJust !== 'undefined' && centrosSelecionadosJust.size > 0;
+            const temFiltroContas = typeof contasSelecionadasJust !== 'undefined' && contasSelecionadasJust.size > 0;
+
+            const filtradas = linhasMes.filter(r => {
+                if (temFiltroCentros && !centrosSelecionadosJust.has(r.centro)) return false;
+                if (temFiltroContas && !contasSelecionadasJust.has(r.conta)) return false;
+                return true;
+            });
+
+            const agrup = {};
+            filtradas.forEach(item => {
+                if (!agrup[item.centro]) {
+                    agrup[item.centro] = {
+                        centro: item.centro,
+                        orcado: 0,
+                        realizado: 0,
+                        justificativas: [],
+                        qtdEstouros: 0,
+                        qtdEstourosSemJust: 0
+                    };
+                }
+                const isRec = item.conta && String(item.conta).startsWith('3');
+                if (!isRec) {
+                    agrup[item.centro].orcado += (Number(item.orcado) || 0);
+                    agrup[item.centro].realizado += (Number(item.realizado) || 0);
+
+                    // Verifica justificativa na linha ou no objeto global de justificativas da competência
+                    let txtJust = (item.justificativa && String(item.justificativa).trim() !== '' && String(item.justificativa).trim() !== '-')
+                        ? String(item.justificativa).trim()
+                        : '';
+                    if (!txtJust && typeof getJustificativa === 'function') {
+                        const jSalva = getJustificativa(item.centro, item.conta, comp);
+                        if (jSalva && String(jSalva).trim() !== '' && String(jSalva).trim() !== '-') {
+                            txtJust = String(jSalva).trim();
+                        }
+                    }
+                    if (txtJust) {
+                        agrup[item.centro].justificativas.push(txtJust);
+                    }
+
+                    if (((Number(item.realizado) || 0) - (Number(item.orcado) || 0)) > 0.01) {
+                        agrup[item.centro].qtdEstouros++;
+                        if (!txtJust) {
+                            agrup[item.centro].qtdEstourosSemJust++;
+                        }
+                    }
+                }
+            });
+
+            const resultado = [];
+            Object.values(agrup).forEach(c => {
+                const varTotal = c.realizado - c.orcado;
+                const temJustificativa = c.justificativas.length > 0 || verificarSeCentroJaJustificou(comp, c.centro);
+                let status = 'CONFORME';
+                if (temJustificativa) {
+                    status = 'NAO_CONFORME_JUSTIFICADO';
+                } else if (c.qtdEstouros > 0 || varTotal > 0.01) {
+                    status = 'NAO_CONFORME';
+                } else {
+                    status = 'CONFORME';
+                }
+
+                // Na régua de cobrança/auditoria entram os centros que tiveram desvio (NAO_CONFORME ou NAO_CONFORME_JUSTIFICADO)
+                if (status === 'NAO_CONFORME' || status === 'NAO_CONFORME_JUSTIFICADO') {
+                    resultado.push({
+                        centro: c.centro,
+                        orcado: c.orcado,
+                        realizado: c.realizado,
+                        variacao: varTotal,
+                        qtdEstouros: c.qtdEstouros,
+                        qtdEstourosSemJust: c.qtdEstourosSemJust,
+                        statusMes: status,
+                        justificativaResumo: c.justificativas.join(' | ')
+                    });
+                }
+            });
+
+            return resultado.sort((a, b) => b.variacao - a.variacao);
+        }
+
+        function verificarSeCentroJaJustificou(competencia, centro) {
+            try {
+                const comp = competencia || competenciaAtual || '';
+                if (!comp) return false;
+                const chaveExata = `${comp}|${centro}`;
+                if (typeof justificativas === 'object' && justificativas) {
+                    if (justificativas[chaveExata] && String(justificativas[chaveExata].texto || justificativas[chaveExata] || '').trim().length > 0) {
+                        return true;
+                    }
+                    const cNorm = normC(centro);
+                    for (const [k, val] of Object.entries(justificativas)) {
+                        const partes = k.split('|');
+                        if (partes.length >= 2 && partes[0] === comp && normC(partes.slice(1).join('|')) === cNorm) {
+                            const txt = typeof val === 'object' ? (val.texto || '') : String(val || '');
+                            if (txt.trim().length > 0 && txt.trim() !== '-') return true;
+                        }
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        function calcularDiagnosticoMarcosEnvio(item) {
+            const jaJustificouMes = item.statusMes === 'NAO_CONFORME_JUSTIFICADO' || verificarSeCentroJaJustificou(item.competencia, item.centro);
+            const analiseConcluida = Boolean(item.analiseRealizada || item.dataAnaliseRealizada || jaJustificouMes);
+
+            const marco1Efetivo = item.marco1Data || item.dataHora || null;
+
+            let codigoMarco = 'MARCO_1';
+            let labelStatus = '';
+            let corBadge = '';
+            let iconeStatus = '';
+            let proximoPasso = '';
+
+            if (analiseConcluida) {
+                codigoMarco = 'CONCLUIDO';
+                labelStatus = 'Análise Realizada';
+                corBadge = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                iconeStatus = 'fa-solid fa-circle-check';
+                proximoPasso = 'Justificativa registrada no mês';
+            } else if (item.marco3Data) {
+                codigoMarco = 'MARCO_3';
+                labelStatus = '3º Marco: Não Conformidade Aberta';
+                corBadge = 'bg-rose-100 text-rose-800 border-rose-300';
+                iconeStatus = 'fa-solid fa-file-circle-exclamation';
+                proximoPasso = item.marco3Protocolo ? `Protocolo: ${item.marco3Protocolo}` : 'Não Conformidade registrada';
+            } else if (item.marco2Data) {
+                codigoMarco = 'MARCO_2';
+                labelStatus = '2º Marco: E-mail Não Realização';
+                corBadge = 'bg-orange-100 text-orange-800 border-orange-300';
+                iconeStatus = 'fa-solid fa-triangle-exclamation';
+                proximoPasso = 'Se sem resposta ➔ 3º Marco (Abrir Não Conformidade)';
+            } else if (marco1Efetivo) {
+                codigoMarco = 'MARCO_1';
+                labelStatus = '1º Marco: Lembrete Enviado (7º d.u.)';
+                corBadge = 'bg-amber-100 text-amber-900 border-amber-300';
+                iconeStatus = 'fa-solid fa-bell';
+                proximoPasso = 'Se não realizar ➔ 2º Marco (E-mail Não Realização)';
+            } else {
+                codigoMarco = 'MARCO_1';
+                labelStatus = '1º Marco: Aguardando Lembrete (7º d.u.)';
+                corBadge = 'bg-amber-50 text-amber-800 border-amber-300';
+                iconeStatus = 'fa-regular fa-bell';
+                proximoPasso = 'Disparar 1º Marco (E-mail de Lembrete do 7º dia útil)';
+            }
+
+            return {
+                marco1Efetivo,
+                analiseConcluida,
+                jaJustificouMes,
+                codigoMarco,
+                labelStatus,
+                corBadge,
+                iconeStatus,
+                proximoPasso
+            };
+        }
+
+        async function salvarListaHistoricoEnviosServidor(historico) {
+            lsSet('hmdcc_historico_envios_detalhado', historico);
+            if (typeof agendarSalvamentoServidor === 'function') {
+                agendarSalvamentoServidor();
+            }
+        }
+
+        async function registrarEnvioEmailAuditoria(centro, destinatarioEmail, nomeGestor, competencia, opcaoMarco = 1, protocoloRnc = '') {
+            const comp = (competencia && competencia !== 'Vigente') ? competencia : ((competenciaAtual && competenciaAtual !== 'Vigente') ? competenciaAtual : '');
+            if (!comp) return;
+            const partesComp = comp.split('/');
+            const mesEnvio = partesComp[0] || String(new Date().getMonth() + 1).padStart(2, '0');
+            const anoEnvio = partesComp[1] || String(new Date().getFullYear());
+            const dataHoraIso = new Date().toISOString();
+
+            const excluidos = new Set(lsGet(LS_ENVIOS_EXCLUIDOS, []));
+            excluidos.delete(`${comp}|${normC(centro)}`);
+            lsSet(LS_ENVIOS_EXCLUIDOS, Array.from(excluidos));
+
             notificacoes[`${comp}|${centro}`] = dataHoraIso;
             lsSet(LS_NOTIF, notificacoes);
 
-            // Registro detalhado no array de histórico
             let historico = lsGet('hmdcc_historico_envios_detalhado', []);
-            const novoRegistro = {
-                id: `envio_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                dataHora: dataHoraIso,
-                ano: anoEnvio,
-                mes: mesEnvio,
-                competencia: comp,
-                centro: centro,
-                gestorNome: nomeGestor || (getGestor(centro) ? getGestor(centro).nome : 'Não informado'),
-                gestorEmail: destinatarioEmail || (getGestor(centro) ? getGestor(centro).email : ''),
-                usuarioRemetente: (typeof obterEmailUsuarioLogado === 'function' ? obterEmailUsuarioLogado() : 'Local/Offline')
-            };
+            const idxExistente = historico.findIndex(h => h && h.competencia === comp && normC(h.centro) === normC(centro));
 
-            historico.unshift(novoRegistro);
-            lsSet('hmdcc_historico_envios_detalhado', historico);
+            let registroAlvo;
+            if (idxExistente >= 0) {
+                registroAlvo = historico[idxExistente];
+                if (!registroAlvo.dataHora) registroAlvo.dataHora = dataHoraIso;
+                registroAlvo.ultimoDisparo = dataHoraIso;
+                if (nomeGestor) registroAlvo.gestorNome = nomeGestor;
+                if (destinatarioEmail) registroAlvo.gestorEmail = destinatarioEmail;
+            } else {
+                registroAlvo = {
+                    id: `envio_${comp.replace('/', '')}_${normC(centro).replace(/[^a-z0-9]/gi, '_')}`,
+                    dataHora: dataHoraIso,
+                    ano: anoEnvio,
+                    mes: mesEnvio,
+                    competencia: comp,
+                    centro: centro,
+                    gestorNome: nomeGestor || (getGestor(centro) ? getGestor(centro).nome : 'Não informado'),
+                    gestorEmail: destinatarioEmail || (getGestor(centro) ? getGestor(centro).email : ''),
+                    usuarioRemetente: (typeof obterEmailUsuarioLogado === 'function' ? obterEmailUsuarioLogado() : 'Sistema HMDCC'),
+                    marco1Data: null,
+                    marco2Data: null,
+                    marco3Data: null,
+                    marco3Protocolo: '',
+                    analiseRealizada: false,
+                    dataAnaliseRealizada: null
+                };
+                historico.unshift(registroAlvo);
+            }
 
-            // Persistir no Firebase Firestore se conectado
+            if (opcaoMarco === 1) {
+                registroAlvo.marco1Data = dataHoraIso;
+            } else if (opcaoMarco === 2) {
+                if (!registroAlvo.marco1Data) registroAlvo.marco1Data = registroAlvo.dataHora || dataHoraIso;
+                registroAlvo.marco2Data = dataHoraIso;
+            } else if (opcaoMarco === 3) {
+                if (!registroAlvo.marco1Data) registroAlvo.marco1Data = registroAlvo.dataHora || dataHoraIso;
+                if (!registroAlvo.marco2Data) registroAlvo.marco2Data = dataHoraIso;
+                registroAlvo.marco3Data = dataHoraIso;
+                if (protocoloRnc) registroAlvo.marco3Protocolo = protocoloRnc;
+            }
+
+            await salvarListaHistoricoEnviosServidor(historico);
+
             if (dbFirestore && firebaseConectado) {
                 try {
-                    await dbFirestore.collection(FS_COL_ENVIOS).doc(novoRegistro.id).set(novoRegistro);
+                    await dbFirestore.collection(FS_COL_ENVIOS).doc(registroAlvo.id).set(registroAlvo, { merge: true });
                 } catch (err) {
                     console.warn('Erro ao salvar auditoria de e-mail no Firestore:', err);
                 }
@@ -8423,10 +8833,30 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             try {
                 const snap = await dbFirestore.collection(FS_COL_ENVIOS).orderBy('dataHora', 'desc').limit(500).get();
                 if (!snap.empty) {
+                    const excluidos = new Set(lsGet(LS_ENVIOS_EXCLUIDOS, []));
                     const listaNuvem = [];
-                    snap.forEach(doc => listaNuvem.push(doc.data()));
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        if (d && !excluidos.has(d.id) && !excluidos.has(`${d.competencia}|${normC(d.centro)}`)) {
+                            listaNuvem.push(d);
+                        }
+                    });
                     if (listaNuvem.length > 0) {
-                        lsSet('hmdcc_historico_envios_detalhado', listaNuvem);
+                        const local = lsGet('hmdcc_historico_envios_detalhado', []);
+                        const mapa = new Map();
+                        local.forEach(item => {
+                            if (item && item.id && !excluidos.has(item.id) && !excluidos.has(`${item.competencia}|${normC(item.centro)}`)) {
+                                mapa.set(item.id, item);
+                            }
+                        });
+                        listaNuvem.forEach(item => {
+                            if (item && item.id) {
+                                const ant = mapa.get(item.id) || {};
+                                mapa.set(item.id, Object.assign({}, ant, item));
+                            }
+                        });
+                        const unificado = Array.from(mapa.values()).sort((a, b) => new Date(b.dataHora || 0) - new Date(a.dataHora || 0));
+                        lsSet('hmdcc_historico_envios_detalhado', unificado);
                     }
                 }
             } catch (e) {
@@ -8434,80 +8864,293 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             }
         }
 
-        function obterHistoricoEnviosUnificado() {
-            let hist = lsGet('hmdcc_historico_envios_detalhado', []);
+        // Unifica os registros de auditoria salvos no Firebase com os Centros de Custo reais do Mês de Análise selecionado!
+        function obterHistoricoEnviosPorMesAnalise(compAlvo) {
+            const comp = compAlvo || competenciaAtual || '';
+            if (!comp) return [];
+
+            const excluidos = new Set(lsGet(LS_ENVIOS_EXCLUIDOS, []));
+            const histSalvo = lsGet('hmdcc_historico_envios_detalhado', []);
             const notifs = lsGet(LS_NOTIF, {});
-            const compPadraoFallback = competenciaAtual || '09/2026';
+            const partesComp = comp.split('/');
+            const mesComp = partesComp[0] || '';
+            const anoComp = partesComp[1] || '2026';
 
-            // 1. Migrar/Sanitizar qualquer registro existente que esteja como 'Vigente' para a competência real (ex: 09/2026)
-            let alterouHist = false;
-            hist.forEach(h => {
-                if (!h.competencia || h.competencia === 'Vigente' || h.competencia.toLowerCase() === 'vigente') {
-                    // Deriva a competência a partir da data de envio se disponível, ou usa compPadraoFallback
-                    if (h.ano && h.mes) {
-                        h.competencia = `${String(h.mes).padStart(2, '0')}/${h.ano}`;
-                    } else if (h.dataHora) {
-                        const d = new Date(h.dataHora);
-                        const m = isNaN(d.getMonth()) ? '09' : String(d.getMonth() + 1).padStart(2, '0');
-                        const a = isNaN(d.getFullYear()) ? '2026' : String(d.getFullYear());
-                        h.competencia = `${m}/${a}`;
-                        h.mes = m;
-                        h.ano = a;
-                    } else {
-                        h.competencia = compPadraoFallback;
-                    }
-                    alterouHist = true;
-                }
+            // Mapa de registros já salvos para esta competência
+            const mapaSalvos = new Map();
+            histSalvo.forEach(h => {
+                if (!h || h.competencia !== comp) return;
+                const ch = `${comp}|${normC(h.centro)}`;
+                if (excluidos.has(h.id) || excluidos.has(ch)) return;
+                if (!h.marco1Data && h.dataHora) h.marco1Data = h.dataHora;
+                mapaSalvos.set(normC(h.centro), h);
             });
 
-            if (alterouHist) {
-                lsSet('hmdcc_historico_envios_detalhado', hist);
-            }
-
-            // 2. Se houver notificações em LS_NOTIF que ainda não estão no histórico detalhado, insere com a competência correta (sem "Vigente")
-            const chavesHist = new Set(hist.map(h => `${h.competencia}|${h.centro}`));
+            // Também verifica notificações simples salvas para esta competência
             Object.entries(notifs).forEach(([k, dt]) => {
-                const partes = k.split('|');
-                let comp = partes[0] || '';
-                const c = partes[1] || k;
-                const d = new Date(dt);
-                const ano = isNaN(d.getFullYear()) ? '2026' : String(d.getFullYear());
-                const mes = isNaN(d.getMonth()) ? '09' : String(d.getMonth() + 1).padStart(2, '0');
+                const p = k.split('|');
+                if (p[0] !== comp) return;
+                const c = p.slice(1).join('|');
+                const cNorm = normC(c);
+                const ch = `${comp}|${cNorm}`;
+                if (excluidos.has(ch) || mapaSalvos.has(cNorm)) return;
+                const g = getGestor(c);
+                mapaSalvos.set(cNorm, {
+                    id: `envio_${comp.replace('/', '')}_${cNorm.replace(/[^a-z0-9]/gi, '_')}`,
+                    dataHora: dt,
+                    ano: anoComp,
+                    mes: mesComp,
+                    competencia: comp,
+                    centro: c,
+                    gestorNome: g ? g.nome : 'Gestor Responsável',
+                    gestorEmail: g ? g.email : '',
+                    usuarioRemetente: 'Sistema HMDCC',
+                    marco1Data: dt,
+                    marco2Data: null,
+                    marco3Data: null,
+                    marco3Protocolo: '',
+                    analiseRealizada: false,
+                    dataAnaliseRealizada: null
+                });
+            });
 
-                if (!comp || comp === 'Vigente' || comp.toLowerCase() === 'vigente') {
-                    comp = `${mes}/${ano}`;
-                }
+            // Agora busca os Centros de Custo reais do Mês de Análise (NAO_CONFORME e NAO_CONFORME_JUSTIFICADO)
+            const centrosDoMes = obterResumoCentrosDoMesAnalise(comp);
+            const resultado = [];
+            const centrosProcessados = new Set();
 
-                const chaveFinal = `${comp}|${c}`;
-                if (!chavesHist.has(chaveFinal)) {
-                    chavesHist.add(chaveFinal);
-                    const g = getGestor(c);
-                    const novoItem = {
-                        id: `migrado_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                        dataHora: dt,
-                        ano: ano,
-                        mes: mes,
-                        competencia: comp,
-                        centro: c,
-                        gestorNome: g ? g.nome : 'Cadastrado no Sistema',
-                        gestorEmail: g ? g.email : '',
-                        usuarioRemetente: 'Sistema HMDCC'
-                    };
-                    hist.push(novoItem);
-                    alterouHist = true;
+            centrosDoMes.forEach(cm => {
+                const cNorm = normC(cm.centro);
+                const ch = `${comp}|${cNorm}`;
+                if (excluidos.has(ch)) return;
+
+                centrosProcessados.add(cNorm);
+                const salvo = mapaSalvos.get(cNorm);
+                const g = getGestor(cm.centro);
+                const idPadrao = salvo && salvo.id ? salvo.id : `mes_${comp.replace('/', '')}_${cNorm.replace(/[^a-z0-9]/gi, '_')}`;
+
+                resultado.push({
+                    id: idPadrao,
+                    dataHora: salvo ? salvo.dataHora : null,
+                    ano: anoComp,
+                    mes: mesComp,
+                    competencia: comp,
+                    centro: cm.centro,
+                    orcado: cm.orcado,
+                    realizado: cm.realizado,
+                    variacao: cm.variacao,
+                    qtdEstourosSemJust: cm.qtdEstourosSemJust,
+                    statusMes: cm.statusMes,
+                    gestorNome: (salvo && salvo.gestorNome && salvo.gestorNome !== 'Não informado' && salvo.gestorNome !== 'Cadastrado no Sistema') ? salvo.gestorNome : (g ? g.nome : 'Não cadastrado'),
+                    gestorEmail: (salvo && salvo.gestorEmail) ? salvo.gestorEmail : (g ? g.email : ''),
+                    usuarioRemetente: salvo ? salvo.usuarioRemetente : 'Sistema HMDCC',
+                    marco1Data: salvo ? (salvo.marco1Data || salvo.dataHora || null) : null,
+                    marco2Data: salvo ? (salvo.marco2Data || null) : null,
+                    marco3Data: salvo ? (salvo.marco3Data || null) : null,
+                    marco3Protocolo: salvo ? (salvo.marco3Protocolo || '') : '',
+                    analiseRealizada: Boolean((salvo && salvo.analiseRealizada) || cm.statusMes === 'NAO_CONFORME_JUSTIFICADO'),
+                    dataAnaliseRealizada: salvo ? salvo.dataAnaliseRealizada : null
+                });
+            });
+
+            // Inclui eventuais registros manuais salvos naquela competência que não estavam na lista acima (se não foram excluídos)
+            mapaSalvos.forEach((salvo, cNorm) => {
+                if (!centrosProcessados.has(cNorm)) {
+                    const ch = `${comp}|${cNorm}`;
+                    if (!excluidos.has(ch) && !excluidos.has(salvo.id)) {
+                        resultado.push(salvo);
+                    }
                 }
             });
 
-            if (alterouHist) {
-                lsSet('hmdcc_historico_envios_detalhado', hist);
+            return resultado;
+        }
+
+        function obterHistoricoEnviosUnificado() {
+            const selComp = document.getElementById('auditFiltroComp');
+            const compEscolhida = (selComp && selComp.value && selComp.value !== 'TODAS') ? selComp.value : (competenciaAtual || '');
+            if (!compEscolhida) return [];
+            return obterHistoricoEnviosPorMesAnalise(compEscolhida);
+        }
+
+        window.excluirRegistroAuditoriaEnvio = async function (idRegistro, centroParam, compParam) {
+            const listaAtual = obterHistoricoEnviosUnificado();
+            const item = listaAtual.find(h => h.id === idRegistro) || { id: idRegistro, centro: centroParam || '', competencia: compParam || competenciaAtual };
+            if (!item || !item.centro) return;
+
+            if (!confirm(`Deseja realmente excluir o centro "${item.centro}" da Auditoria/Régua de Cobrança do mês ${item.competencia || ''}?\n\nEsta ação removerá o registro da tela e do Firebase.`)) {
+                return;
             }
 
-            return hist;
-        }
+            const chaveCentroComp = `${item.competencia}|${normC(item.centro)}`;
+            const excluidos = new Set(lsGet(LS_ENVIOS_EXCLUIDOS, []));
+            if (item.id) excluidos.add(item.id);
+            excluidos.add(chaveCentroComp);
+            lsSet(LS_ENVIOS_EXCLUIDOS, Array.from(excluidos));
+
+            Object.keys(notificacoes).forEach(k => {
+                const p = k.split('|');
+                const cComp = p[0] || '';
+                const cNome = p.slice(1).join('|') || k;
+                if (cComp === item.competencia && normC(cNome) === normC(item.centro)) {
+                    delete notificacoes[k];
+                }
+            });
+            lsSet(LS_NOTIF, notificacoes);
+
+            const histSalvo = lsGet('hmdcc_historico_envios_detalhado', []);
+            const novoHist = histSalvo.filter(h => h && h.id !== idRegistro && `${h.competencia}|${normC(h.centro)}` !== chaveCentroComp);
+            await salvarListaHistoricoEnviosServidor(novoHist);
+
+            if (dbFirestore && firebaseConectado && item.id) {
+                try {
+                    await dbFirestore.collection(FS_COL_ENVIOS).doc(item.id).delete();
+                } catch (e) {
+                    console.warn('Erro ao excluir documento no Firestore:', e);
+                }
+            }
+
+            renderizarTabelaAuditoriaEnvios();
+            if (typeof mostrarAviso === 'function') {
+                mostrarAviso(`🗑️ Centro <strong>${escH(item.centro)}</strong> removido da régua de cobrança de <strong>${escH(item.competencia)}</strong>.`, 3500);
+            }
+        };
+
+        window.filtrarAuditoriaPorMarco = function (codigoMarco) {
+            const selMarco = document.getElementById('auditFiltroMarco');
+            if (selMarco) {
+                if (selMarco.value === codigoMarco) {
+                    selMarco.value = 'TODOS';
+                } else {
+                    selMarco.value = codigoMarco || 'TODOS';
+                }
+            }
+            renderizarTabelaAuditoriaEnvios();
+        };
+
+        window.aoMudarFiltroCompetenciaAuditoria = function (origem) {
+            const selAno = document.getElementById('auditFiltroAno');
+            const selComp = document.getElementById('auditFiltroComp');
+            if (origem === 'ANO' && selAno && selComp) {
+                const ano = selAno.value;
+                if (ano !== 'TODOS') {
+                    // Seleciona a primeira competência daquele ano se a atual não for daquele ano
+                    const opcoes = Array.from(selComp.options).map(o => o.value).filter(v => v && v.endsWith('/' + ano));
+                    if (opcoes.length > 0 && (!selComp.value || !selComp.value.endsWith('/' + ano))) {
+                        selComp.value = opcoes[0];
+                    }
+                }
+            }
+            renderizarTabelaAuditoriaEnvios();
+        };
+
+        window.acionarMarcoAuditoriaEnvio = async function (idRegistro, numeroMarco, dispararEmailGmail) {
+            const listaMes = obterHistoricoEnviosUnificado();
+            const item = listaMes.find(h => h.id === idRegistro);
+            if (!item) return;
+
+            const agoraIso = new Date().toISOString();
+            const g = getGestor(item.centro);
+            const emailDest = item.gestorEmail || (g ? g.email : '');
+            const nomeDest = (item.gestorNome && item.gestorNome !== 'Não cadastrado') ? item.gestorNome : (g ? g.nome : 'Gestor(a)');
+            const comp = item.competencia || competenciaAtual || '';
+
+            if (dispararEmailGmail && !emailDest) {
+                if (confirm(`O centro "${item.centro}" ainda não possui e-mail de gestor cadastrado.\n\nDeseja abrir o Cadastro de Gestores agora para cadastrar o e-mail?`)) {
+                    fecharModalAuditoriaEnvios();
+                    abrirModalGestores(item.centro);
+                    return;
+                }
+            }
+
+            let assunto = '';
+            let corpo = '';
+
+            if (numeroMarco === 1) {
+                item.marco1Data = agoraIso;
+                if (!item.dataHora) item.dataHora = agoraIso;
+                assunto = `[1º MARCO - LEMBRETE 7º DIA ÚTIL] Análise Orçamentária Pendente - ${item.centro} (${comp})`;
+                corpo = `Prezado(a) ${nomeDest},\n\n` +
+                    `Lembramos que o prazo regulamentar de 6 (seis) dias úteis para a realização da Análise Orçamentária e registro das justificativas do centro de custo "${item.centro}" (Competência ${comp}) encerrou-se.\n\n` +
+                    `Hoje atingimos o 7º dia útil (1º Marco Importante de Lembrete) sem identificarmos a conclusão da análise no sistema.\n\n` +
+                    `Solicitamos a gentileza de acessar o Painel de Gestão de Custos HMDCC e registrar a análise imediatamente, evitando o avanço para o 2º Marco (Notificação de Não Realização).\n\n` +
+                    `Atenciosamente,\nGestão de Custos e Orçamento - HMDCC`;
+            } else if (numeroMarco === 2) {
+                if (!item.marco1Data) item.marco1Data = item.dataHora || agoraIso;
+                item.marco2Data = agoraIso;
+                assunto = `[2º MARCO IMPORTANTE - NÃO REALIZAÇÃO] Pendência Crítica de Análise Orçamentária - ${item.centro} (${comp})`;
+                corpo = `Prezado(a) ${nomeDest},\n\n` +
+                    `Após o prazo inicial de 6 dias úteis e o envio do 1º Marco de Lembrete no 7º dia útil, constatamos a NÃO REALIZAÇÃO da Análise Orçamentária referente ao centro de custo "${item.centro}" (Competência ${comp}).\n\n` +
+                    `Este e-mail constitui o 2º Marco Importante (Registro Formal de Não Realização). Caso não haja resposta ou regularização imediata no sistema, o processo seguirá obrigatoriamente para o 3º Marco Importante: ABERTURA DE NÃO CONFORMIDADE formal.\n\n` +
+                    `Atenciosamente,\nGestão de Custos e Orçamento - HMDCC`;
+            } else if (numeroMarco === 3) {
+                const obsNC = prompt(
+                    `🚨 ABERTURA DE NÃO CONFORMIDADE (3º MARCO IMPORTANTE)\n\nCentro de Custo: ${item.centro} (${comp})\nGestor: ${nomeDest}\n\nInforme o número do protocolo/RNC ou observação da Não Conformidade (ou deixe em branco para gerar protocolo automático):`,
+                    item.marco3Protocolo || `RNC-${comp.replace('/', '')}-${Math.floor(1000 + Math.random() * 9000)}`
+                );
+                if (obsNC === null) return;
+                if (!item.marco1Data) item.marco1Data = item.dataHora || agoraIso;
+                if (!item.marco2Data) item.marco2Data = agoraIso;
+                item.marco3Data = agoraIso;
+                item.marco3Protocolo = obsNC.trim() || `RNC-${comp.replace('/', '')}`;
+                assunto = `[3º MARCO - ABERTURA DE NÃO CONFORMIDADE ${item.marco3Protocolo}] Ausência de Análise Orçamentária - ${item.centro} (${comp})`;
+                corpo = `Prezado(a) ${nomeDest},\n\n` +
+                    `Tendo em vista o esgotamento do prazo de 6 dias úteis, o envio do Lembrete no 7º dia útil (1º Marco), o envio da Notificação de Não Realização (2º Marco) e a ausência de resposta/justificativa no sistema, comunicamos a ABERTURA DE NÃO CONFORMIDADE (${item.marco3Protocolo}) referente ao centro de custo "${item.centro}" na competência ${comp}.\n\n` +
+                    `Solicitamos providências imediatas junto à Gestão Orçamentária.\n\n` +
+                    `Atenciosamente,\nGestão de Custos e Orçamento - HMDCC`;
+            } else if (numeroMarco === 4) {
+                item.analiseRealizada = !item.analiseRealizada;
+                item.dataAnaliseRealizada = item.analiseRealizada ? agoraIso : null;
+            }
+
+            // Persiste no histórico detalhado salvo e no Firestore
+            let histSalvo = lsGet('hmdcc_historico_envios_detalhado', []);
+            const idxSalvo = histSalvo.findIndex(h => h && (h.id === item.id || (h.competencia === comp && normC(h.centro) === normC(item.centro))));
+            const registroParaSalvar = {
+                id: item.id,
+                dataHora: item.dataHora || agoraIso,
+                ano: item.ano || comp.split('/')[1] || '2026',
+                mes: item.mes || comp.split('/')[0] || '',
+                competencia: comp,
+                centro: item.centro,
+                gestorNome: nomeDest,
+                gestorEmail: emailDest,
+                usuarioRemetente: (typeof obterEmailUsuarioLogado === 'function' ? obterEmailUsuarioLogado() : 'Sistema HMDCC'),
+                marco1Data: item.marco1Data,
+                marco2Data: item.marco2Data,
+                marco3Data: item.marco3Data,
+                marco3Protocolo: item.marco3Protocolo,
+                analiseRealizada: item.analiseRealizada,
+                dataAnaliseRealizada: item.dataAnaliseRealizada
+            };
+
+            if (idxSalvo >= 0) {
+                histSalvo[idxSalvo] = Object.assign({}, histSalvo[idxSalvo], registroParaSalvar);
+            } else {
+                histSalvo.unshift(registroParaSalvar);
+            }
+
+            await salvarListaHistoricoEnviosServidor(histSalvo);
+            if (dbFirestore && firebaseConectado) {
+                try {
+                    await dbFirestore.collection(FS_COL_ENVIOS).doc(registroParaSalvar.id).set(registroParaSalvar, { merge: true });
+                } catch (e) {
+                    console.warn('Erro ao atualizar marco no Firestore:', e);
+                }
+            }
+
+            if (dispararEmailGmail && assunto && emailDest) {
+                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailDest)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+                window.open(gmailUrl, '_blank');
+            }
+
+            renderizarTabelaAuditoriaEnvios();
+        };
 
         window.abrirModalAuditoriaEnvios = async function () {
             await carregarHistoricoEnviosNuvem();
-            popularFiltrosAuditoria();
+            // Sempre sincroniza o filtro com o Mês Ativo atual ao abrir
+            popularFiltrosAuditoria(true);
             renderizarTabelaAuditoriaEnvios();
 
             const m = document.getElementById('modalAuditoriaEnvios');
@@ -8525,121 +9168,311 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             }, 200);
         };
 
-        function popularFiltrosAuditoria() {
-            const dados = obterHistoricoEnviosUnificado();
+        function popularFiltrosAuditoria(forcarMesAtivo) {
             const anos = new Set();
             const comps = new Set();
 
-            dados.forEach(d => {
-                if (d.ano) anos.add(d.ano);
-                if (d.competencia && d.competencia !== 'Vigente' && d.competencia.toLowerCase() !== 'vigente') {
-                    comps.add(d.competencia);
-                }
-            });
-
-            // Adiciona competências do repositório de meses se existirem
             try {
                 const repo = obterRepositorioCompetencias();
                 Object.keys(repo).forEach(k => {
-                    if (k && k !== 'Vigente') comps.add(k);
+                    if (k && k !== 'Vigente') {
+                        comps.add(k);
+                        const p = k.split('/');
+                        if (p[1]) anos.add(p[1]);
+                    }
                 });
-            } catch(e) {}
+            } catch (e) {}
 
-            // Garante ao menos a competência atual e 09/2026
-            if (competenciaAtual && competenciaAtual !== 'Vigente') comps.add(competenciaAtual);
-            if (comps.size === 0) comps.add('09/2026');
+            if (competenciaAtual && competenciaAtual !== 'Vigente') {
+                comps.add(competenciaAtual);
+                const p = competenciaAtual.split('/');
+                if (p[1]) anos.add(p[1]);
+            }
+
+            const histSalvo = lsGet('hmdcc_historico_envios_detalhado', []);
+            histSalvo.forEach(d => {
+                if (d && d.competencia && d.competencia !== 'Vigente') {
+                    comps.add(d.competencia);
+                    const p = d.competencia.split('/');
+                    if (p[1]) anos.add(p[1]);
+                }
+            });
 
             const selAno = document.getElementById('auditFiltroAno');
             const selComp = document.getElementById('auditFiltroComp');
 
             if (selAno) {
-                const valAtual = selAno.value;
+                const anoAtivo = (competenciaAtual && competenciaAtual.includes('/')) ? competenciaAtual.split('/')[1] : '';
                 selAno.innerHTML = '<option value="TODOS">Todos os Anos</option>' +
                     Array.from(anos).sort().reverse().map(a => `<option value="${escH(a)}">${escH(a)}</option>`).join('');
-                if (anos.has(valAtual)) selAno.value = valAtual;
+                if (forcarMesAtivo) {
+                    selAno.value = (anoAtivo && anos.has(anoAtivo)) ? anoAtivo : 'TODOS';
+                }
             }
 
             if (selComp) {
-                const valAtualComp = selComp.value;
-                const compsOrdenadas = Array.from(comps).sort().reverse();
-                selComp.innerHTML = '<option value="TODAS">Todas as Competências</option>' +
+                const valAnterior = selComp.value;
+                const compsOrdenadas = Array.from(comps).sort((a, b) => {
+                    const [ma, aa] = a.split('/');
+                    const [mb, ab] = b.split('/');
+                    return (`${ab || ''}${mb || ''}`).localeCompare(`${aa || ''}${ma || ''}`);
+                });
+                selComp.innerHTML = '<option value="">Selecione o Mês de Análise...</option>' +
                     compsOrdenadas.map(c => `<option value="${escH(c)}">${escH(c)}</option>`).join('');
-                
-                // Se o valor anterior era 'Vigente' ou inválido, seleciona 'TODAS' ou a competência mais recente
-                if (valAtualComp && comps.has(valAtualComp)) {
-                    selComp.value = valAtualComp;
+
+                if (forcarMesAtivo) {
+                    // Segue estritamente o Mês Ativo setado no topo!
+                    if (competenciaAtual && comps.has(competenciaAtual)) {
+                        selComp.value = competenciaAtual;
+                    } else {
+                        selComp.value = '';
+                    }
+                } else if (valAnterior && comps.has(valAnterior)) {
+                    selComp.value = valAnterior;
                 } else if (competenciaAtual && comps.has(competenciaAtual)) {
                     selComp.value = competenciaAtual;
                 } else {
-                    selComp.value = 'TODAS';
+                    selComp.value = '';
                 }
             }
         }
 
         window.renderizarTabelaAuditoriaEnvios = function () {
-            const dados = obterHistoricoEnviosUnificado();
-            const fAno = document.getElementById('auditFiltroAno') ? document.getElementById('auditFiltroAno').value : 'TODOS';
-            const fComp = document.getElementById('auditFiltroComp') ? document.getElementById('auditFiltroComp').value : 'TODAS';
+            const selComp = document.getElementById('auditFiltroComp');
+            const fComp = selComp ? selComp.value : (competenciaAtual || '');
+            const fMarco = document.getElementById('auditFiltroMarco') ? document.getElementById('auditFiltroMarco').value : 'TODOS';
             const fBusca = normalizarTexto(document.getElementById('auditBuscaTexto') ? document.getElementById('auditBuscaTexto').value : '');
 
-            let filtrados = dados.filter(item => {
-                if (fAno !== 'TODOS' && item.ano !== fAno) return false;
-                if (fComp !== 'TODAS' && item.competencia !== fComp) return false;
+            const badgeHeader = document.getElementById('auditHeaderBadgeMesAnalise');
+            if (badgeHeader) {
+                badgeHeader.innerHTML = fComp
+                    ? `<i class="fa-regular fa-calendar-check mr-1"></i>Mês de Análise: ${escH(fComp)}`
+                    : `<i class="fa-solid fa-triangle-exclamation mr-1"></i>Nenhum Mês Selecionado`;
+            }
+
+            const setCnt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            const tbody = document.getElementById('auditTabelaCorpo');
+
+            // Se não houver Mês de Análise selecionado, zera tudo e orienta a selecionar o mês
+            if (!fComp) {
+                setCnt('auditCountMarco1', 0);
+                setCnt('auditCountMarco2', 0);
+                setCnt('auditCountMarco3', 0);
+                setCnt('auditCountConcluido', 0);
+                const subM1 = document.getElementById('auditSubMarco1');
+                if (subM1) subM1.textContent = 'E-mail de Lembrete';
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="p-10 text-center text-slate-500">
+                                <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-amber-500 block"></i>
+                                <div class="font-bold text-slate-700 text-sm">Nenhum Mês de Análise selecionado</div>
+                                <div class="text-xs text-slate-400 mt-1">Selecione um <strong>Mês Ativo</strong> no topo do sistema ou escolha a competência no seletor acima para visualizar os centros e marcos daquele mês.</div>
+                            </td>
+                        </tr>
+                    `;
+                }
+                return;
+            }
+
+            const dadosMes = obterHistoricoEnviosPorMesAnalise(fComp);
+
+            const baseFiltrada = dadosMes.filter(item => {
                 if (fBusca) {
-                    const haystack = normalizarTexto(`${item.centro} ${item.gestorNome} ${item.gestorEmail} ${item.competencia}`);
+                    const haystack = normalizarTexto(`${item.centro} ${item.gestorNome} ${item.gestorEmail} ${item.competencia} ${item.marco3Protocolo || ''}`);
                     if (!haystack.includes(fBusca)) return false;
                 }
                 return true;
             });
 
-            // Atualizar contadores do topo
-            document.getElementById('auditTotalEnvios').textContent = filtrados.length;
-            const centrosUnicos = new Set(filtrados.map(f => normC(f.centro)));
-            document.getElementById('auditTotalCentrosNotificados').textContent = centrosUnicos.size;
-            document.getElementById('auditBadgeCompetencia').textContent = fComp !== 'TODAS' ? fComp : (fAno !== 'TODOS' ? `Ano ${fAno}` : 'Todas');
+            let cMarco1 = 0, cMarco1Enviados = 0, cMarco2 = 0, cMarco3 = 0, cConcluido = 0;
+            const enriquecidos = baseFiltrada.map(item => {
+                const diag = calcularDiagnosticoMarcosEnvio(item);
+                if (diag.codigoMarco === 'MARCO_1') {
+                    cMarco1++;
+                    if (diag.marco1Efetivo) cMarco1Enviados++;
+                } else if (diag.codigoMarco === 'MARCO_2') {
+                    cMarco2++;
+                } else if (diag.codigoMarco === 'MARCO_3') {
+                    cMarco3++;
+                } else if (diag.codigoMarco === 'CONCLUIDO') {
+                    cConcluido++;
+                }
+                return { item, diag };
+            });
 
-            const tbody = document.getElementById('auditTabelaCorpo');
+            setCnt('auditCountMarco1', cMarco1);
+            setCnt('auditCountMarco2', cMarco2);
+            setCnt('auditCountMarco3', cMarco3);
+            setCnt('auditCountConcluido', cConcluido);
+
+            const subM1 = document.getElementById('auditSubMarco1');
+            if (subM1) {
+                subM1.textContent = cMarco1 > 0
+                    ? `${cMarco1Enviados} enviado(s) • ${cMarco1 - cMarco1Enviados} pendente(s)`
+                    : 'E-mail de Lembrete';
+            }
+
+            ['MARCO_1', 'MARCO_2', 'MARCO_3', 'CONCLUIDO'].forEach(cod => {
+                const btn = document.getElementById('cardAuditMarco_' + cod);
+                if (btn) {
+                    if (fMarco === cod) {
+                        btn.classList.add('ring-2', 'ring-[#00ab97]', 'bg-emerald-50/20');
+                    } else {
+                        btn.classList.remove('ring-2', 'ring-[#00ab97]', 'bg-emerald-50/20');
+                    }
+                }
+            });
+
+            const exibidos = fMarco === 'TODOS'
+                ? enriquecidos
+                : enriquecidos.filter(x => x.diag.codigoMarco === fMarco);
+
             if (!tbody) return;
 
-            if (filtrados.length === 0) {
+            if (exibidos.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="p-8 text-center text-slate-400">
+                        <td colspan="4" class="p-10 text-center text-slate-400">
                             <i class="fa-regular fa-envelope-open text-3xl mb-2 text-slate-300 block"></i>
-                            Nenhum envio registrado para os filtros selecionados.
+                            Nenhum centro de custo encontrado neste marco para a competência <strong>${escH(fComp)}</strong>.
                         </td>
                     </tr>
                 `;
                 return;
             }
 
-            tbody.innerHTML = filtrados.map(item => {
-                const dataFormatada = item.dataHora ? new Date(item.dataHora).toLocaleString('pt-BR') : '-';
+            tbody.innerHTML = exibidos.map(({ item, diag }) => {
+                const dtM1 = diag.marco1Efetivo ? new Date(diag.marco1Efetivo).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+                const dtM2 = item.marco2Data ? new Date(item.marco2Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+                const dtM3 = item.marco3Data ? new Date(item.marco3Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+
+                const m1Class = dtM1
+                    ? 'bg-amber-100 border-amber-400 text-amber-900'
+                    : (!diag.analiseConcluida ? 'bg-amber-50/80 border-amber-300 text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-400');
+
+                const m2Class = dtM2
+                    ? 'bg-orange-100 border-orange-400 text-orange-900'
+                    : (dtM1 && !diag.analiseConcluida ? 'bg-orange-50/60 border-orange-300 text-orange-800' : 'bg-slate-50 border-slate-200 text-slate-400');
+
+                const m3Class = dtM3
+                    ? 'bg-rose-100 border-rose-400 text-rose-900'
+                    : (dtM2 && !diag.analiseConcluida ? 'bg-rose-50/60 border-rose-300 text-rose-800' : 'bg-slate-50 border-slate-200 text-slate-400');
+
+                const desvioStr = (typeof item.variacao === 'number' && item.variacao > 0)
+                    ? `<div class="text-[10px] font-bold text-rose-600 mt-1"><i class="fa-solid fa-arrow-trend-up mr-1"></i>Desvio no mês: +${formatMoeda(item.variacao)}</div>`
+                    : '';
+
                 return `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="p-3 font-medium text-slate-700 whitespace-nowrap">
-                            <i class="fa-regular fa-clock text-slate-400 mr-1.5"></i>${dataFormatada}
-                        </td>
+                    <tr class="hover:bg-slate-50/90 transition-colors align-top">
+                        <!-- Coluna 1: Competência, Centro, Gestor e Desvio do Mês -->
                         <td class="p-3">
-                            <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-[#008f7e] border border-emerald-200">
-                                ${escH(item.competencia || '-')}
-                            </span>
+                            <div class="flex items-center gap-1.5 mb-1">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-[#008f7e] border border-emerald-200">
+                                    ${escH(item.competencia || '-')}
+                                </span>
+                                <span class="font-bold text-slate-800 text-xs">${escH(item.centro)}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-600 font-medium flex items-center gap-1">
+                                <i class="fa-regular fa-user text-slate-400"></i> ${escH(item.gestorNome || 'Gestor Responsável')}
+                            </div>
+                            <div class="text-[10px] text-slate-500 font-mono mt-0.5">
+                                ${item.gestorEmail
+                                    ? `<a href="mailto:${escH(item.gestorEmail)}" class="text-[#008f7e] hover:underline inline-flex items-center gap-1"><i class="fa-regular fa-envelope"></i> ${escH(item.gestorEmail)}</a>`
+                                    : `<button type="button" onclick="fecharModalAuditoriaEnvios(); abrirModalGestores('${escH(item.centro)}')" class="text-amber-700 hover:underline inline-flex items-center gap-1 font-sans font-semibold"><i class="fa-solid fa-user-plus"></i> Cadastrar e-mail do gestor</button>`
+                                }
+                            </div>
+                            ${desvioStr}
                         </td>
-                        <td class="p-3 font-semibold text-slate-800">
-                            ${escH(item.centro)}
+
+                        <!-- Coluna 2: Linha do Tempo dos 3 Marcos Importantes -->
+                        <td class="p-3 min-w-[360px]">
+                            <div class="grid grid-cols-3 gap-2">
+                                <!-- 1º Marco: 7º Dia Útil (Lembrete) -->
+                                <div class="p-2.5 rounded-lg border ${m1Class} transition-all">
+                                    <div class="flex items-center justify-between text-[10px] font-extrabold">
+                                        <span>1º MARCO (7º D.U.)</span>
+                                        <i class="fa-solid ${dtM1 ? 'fa-check-circle text-amber-600' : 'fa-bell'}"></i>
+                                    </div>
+                                    <div class="text-[10px] font-semibold mt-0.5 leading-tight">E-mail de Lembrete</div>
+                                    <div class="text-[9px] mt-1 font-mono ${dtM1 ? 'font-bold text-amber-950' : 'text-slate-500'}">
+                                        ${dtM1 ? `Enviado: ${dtM1}` : (diag.analiseConcluida ? 'Justificado no prazo' : 'Aguardando envio')}
+                                    </div>
+                                </div>
+
+                                <!-- 2º Marco: E-mail de Não Realização -->
+                                <div class="p-2.5 rounded-lg border ${m2Class} transition-all">
+                                    <div class="flex items-center justify-between text-[10px] font-extrabold">
+                                        <span>2º MARCO</span>
+                                        <i class="fa-solid ${dtM2 ? 'fa-check-circle text-orange-600' : 'fa-triangle-exclamation'}"></i>
+                                    </div>
+                                    <div class="text-[10px] font-semibold mt-0.5 leading-tight">E-mail Não Realização</div>
+                                    <div class="text-[9px] mt-1 font-mono ${dtM2 ? 'font-bold text-orange-950' : 'text-slate-500'}">
+                                        ${dtM2 ? `Enviado: ${dtM2}` : 'Aguardando disparo'}
+                                    </div>
+                                </div>
+
+                                <!-- 3º Marco: Abertura de Não Conformidade -->
+                                <div class="p-2.5 rounded-lg border ${m3Class} transition-all">
+                                    <div class="flex items-center justify-between text-[10px] font-extrabold">
+                                        <span>3º MARCO</span>
+                                        <i class="fa-solid ${dtM3 ? 'fa-file-circle-exclamation text-rose-600' : 'fa-ban'}"></i>
+                                    </div>
+                                    <div class="text-[10px] font-semibold mt-0.5 leading-tight">Não Conformidade</div>
+                                    <div class="text-[9px] mt-1 font-mono ${dtM3 ? 'font-bold text-rose-950' : 'text-slate-500'}">
+                                        ${dtM3 ? `${escH(item.marco3Protocolo || 'Aberta')}: ${dtM3}` : 'Se sem resposta'}
+                                    </div>
+                                </div>
+                            </div>
                         </td>
-                        <td class="p-3 text-slate-700">
-                            ${escH(item.gestorNome || 'Gestor Responsável')}
-                        </td>
-                        <td class="p-3 text-slate-600 font-mono text-[11px]">
-                            <a href="mailto:${escH(item.gestorEmail)}" class="text-[#008f7e] hover:underline flex items-center gap-1">
-                                <i class="fa-regular fa-envelope"></i> ${escH(item.gestorEmail || 'Sem e-mail')}
-                            </a>
-                        </td>
+
+                        <!-- Coluna 3: Situação Atual no Mês -->
                         <td class="p-3 text-center whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                <i class="fa-solid fa-check text-[9px]"></i> Disparado
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${diag.corBadge}">
+                                <i class="${diag.iconeStatus}"></i> ${escH(diag.labelStatus)}
                             </span>
+                            <div class="text-[10px] text-slate-500 font-medium mt-1 max-w-[190px] mx-auto whitespace-normal leading-tight">
+                                ${escH(diag.proximoPasso)}
+                            </div>
+                        </td>
+
+                        <!-- Coluna 4: Botões de Ação Rápida para Avançar Marcos e Excluir -->
+                        <td class="p-3 text-center whitespace-nowrap">
+                            <div class="flex flex-col gap-1.5 items-stretch min-w-[195px]">
+                                <!-- Botão 1º Marco -->
+                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 1, true)"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM1 ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-2xs'}">
+                                    <span><i class="fa-solid fa-bell mr-1"></i>1º Marco: Lembrete (7º d.u.)</span>
+                                    <i class="fa-solid ${dtM1 ? 'fa-rotate-right' : 'fa-paper-plane'} text-[9px]"></i>
+                                </button>
+
+                                <!-- Botão 2º Marco -->
+                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 2, true)"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM2 ? 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100' : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-700 shadow-2xs'}">
+                                    <span><i class="fa-solid fa-envelope-open-text mr-1"></i>2º Marco: Não Realização</span>
+                                    <i class="fa-solid ${dtM2 ? 'fa-rotate-right' : 'fa-paper-plane'} text-[9px]"></i>
+                                </button>
+
+                                <!-- Botão 3º Marco -->
+                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 3, true)"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM3 ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs'}">
+                                    <span><i class="fa-solid fa-file-circle-exclamation mr-1"></i>3º Marco: Não Conformidade</span>
+                                    <i class="fa-solid ${dtM3 ? 'fa-pen' : 'fa-gavel'} text-[9px]"></i>
+                                </button>
+
+                                <!-- Linha inferior: Concluir e Excluir -->
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 4, false)"
+                                        class="flex-1 px-2 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 ${diag.analiseConcluida ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200' : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border-slate-300'}">
+                                        <i class="fa-solid fa-check"></i> ${diag.analiseConcluida ? 'Concluída' : 'Marcar Realizada'}
+                                    </button>
+                                    <button type="button" onclick="excluirRegistroAuditoriaEnvio('${escH(item.id)}', '${escH(item.centro)}', '${escH(item.competencia)}')"
+                                        title="Excluir este centro da régua de cobrança deste mês"
+                                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-rose-200 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white transition-all flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-trash-can"></i> Excluir
+                                    </button>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -8649,20 +9482,23 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
         window.exportarAuditoriaEnviosCSV = function () {
             const dados = obterHistoricoEnviosUnificado();
             if (dados.length === 0) {
-                alert('Não há dados de envios para exportar.');
+                alert('Selecione um Mês de Análise com dados para exportar.');
                 return;
             }
 
-            let csv = "Data_Hora;Ano;Mes;Competencia;Centro_de_Custo;Gestor_Nome;Gestor_Email;Remetente\n";
+            let csv = "Competencia;Centro_de_Custo;Gestor_Nome;Gestor_Email;Desvio_Mes;Marco1_Lembrete_7_Dia_Util;Marco2_Nao_Realizacao;Marco3_Nao_Conformidade;Protocolo_NC;Status_Atual\n";
             dados.forEach(d => {
-                const dt = d.dataHora ? new Date(d.dataHora).toLocaleString('pt-BR') : '';
-                csv += `"${dt}";"${d.ano || ''}";"${d.mes || ''}";"${d.competencia || ''}";"${(d.centro || '').replace(/"/g, '""')}";"${(d.gestorNome || '').replace(/"/g, '""')}";"${d.gestorEmail || ''}";"${d.usuarioRemetente || ''}"\n`;
+                const diag = calcularDiagnosticoMarcosEnvio(d);
+                const m1 = diag.marco1Efetivo ? new Date(diag.marco1Efetivo).toLocaleString('pt-BR') : 'Pendente';
+                const m2 = d.marco2Data ? new Date(d.marco2Data).toLocaleString('pt-BR') : 'Pendente';
+                const m3 = d.marco3Data ? new Date(d.marco3Data).toLocaleString('pt-BR') : 'Pendente';
+                const desvio = typeof d.variacao === 'number' ? formatMoeda(d.variacao) : '-';
+                csv += `"${d.competencia || ''}";"${(d.centro || '').replace(/"/g, '""')}";"${(d.gestorNome || '').replace(/"/g, '""')}";"${d.gestorEmail || ''}";"${desvio}";"${m1}";"${m2}";"${m3}";"${(d.marco3Protocolo || '').replace(/"/g, '""')}";"${diag.labelStatus}"\n`;
             });
 
             const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            baixarBlob(blob, `auditoria_envios_emails_hmdcc_${new Date().toISOString().slice(0, 10)}.csv`);
+            baixarBlob(blob, `auditoria_marcos_cobranca_hmdcc_${new Date().toISOString().slice(0, 10)}.csv`);
         };
-    
 
         window.abrirModalGestores = function (centroPre) {
             document.getElementById('dlCentros').innerHTML = centrosDisponiveis.map(c => `<option value="${escH(c)}">`).join('');
@@ -8757,21 +9593,66 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
         };
 
         window.centroModalAtual = "";
+
+        function obterRegistroAuditoriaDoCentroNoMes(centro, comp) {
+            const cAlvo = comp || competenciaAtual || '';
+            if (!cAlvo || !centro) return null;
+            const lista = obterHistoricoEnviosPorMesAnalise(cAlvo);
+            return lista.find(h => normC(h.centro) === normC(centro)) || null;
+        }
+
         function atualizarBotaoNotificar(centro, veioJust) {
             window.centroModalAtual = centro;
             const box = document.getElementById('modalNotificar');
+            const painelOpcoes = document.getElementById('painelOpcoesNotificarGestor');
             const it = (window.listaAtualJustificativa || []).find(i => i.centro === centro);
-            if (!veioJust || !it || it.status !== 'NAO_CONFORME') { box.classList.add('hidden'); return; }
+            if (!veioJust || !it || it.status !== 'NAO_CONFORME') {
+                box.classList.add('hidden');
+                if (painelOpcoes) painelOpcoes.classList.add('hidden');
+                return;
+            }
             box.classList.remove('hidden');
             const g = getGestor(centro);
             document.getElementById('notifInfo').innerHTML = g
                 ? `Gestor: <strong>${escH(g.nome)}</strong> &lt;${escH(g.email)}&gt;`
                 : `<span class="text-rose-600 font-semibold">Gestor não cadastrado para este centro.</span>`;
-            const ult = notificacoes[`${competenciaAtual}|${centro}`];
-            document.getElementById('notifUltima').textContent = ult ? `Última notificação: ${new Date(ult).toLocaleString('pt-BR')}` : '';
+
+            const reg = obterRegistroAuditoriaDoCentroNoMes(centro, competenciaAtual);
+            const ult = notificacoes[`${competenciaAtual}|${centro}`] || (reg && (reg.marco3Data || reg.marco2Data || reg.marco1Data || reg.dataHora));
+            let resumoMarcoUlt = '';
+            if (reg) {
+                if (reg.marco3Data) resumoMarcoUlt = ` • 3º Marco (RNC ${reg.marco3Protocolo || ''})`;
+                else if (reg.marco2Data) resumoMarcoUlt = ' • 2º Marco (Não Realização)';
+                else if (reg.marco1Data || reg.dataHora) resumoMarcoUlt = ' • 1º Marco (7º Dia Útil)';
+            }
+            document.getElementById('notifUltima').textContent = ult
+                ? `Última notificação: ${new Date(ult).toLocaleString('pt-BR')}${resumoMarcoUlt}`
+                : '';
+
+            // Atualiza os status dentro dos 3 cards de opção
+            const fmtCurto = iso => iso ? new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+            const infoM1 = document.getElementById('infoDataOpcaoMarco1');
+            const infoM2 = document.getElementById('infoDataOpcaoMarco2');
+            const infoM3 = document.getElementById('infoDataOpcaoMarco3');
+            if (infoM1) {
+                const dt1 = reg && (reg.marco1Data || reg.dataHora);
+                infoM1.innerHTML = dt1 ? `<i class="fa-solid fa-check text-emerald-600"></i> Enviado: ${fmtCurto(dt1)}` : 'Clique para enviar';
+            }
+            if (infoM2) {
+                const dt2 = reg && reg.marco2Data;
+                infoM2.innerHTML = dt2 ? `<i class="fa-solid fa-check text-emerald-600"></i> Enviado: ${fmtCurto(dt2)}` : 'Clique para enviar';
+            }
+            if (infoM3) {
+                const dt3 = reg && reg.marco3Data;
+                infoM3.innerHTML = dt3 ? `<i class="fa-solid fa-check text-emerald-600"></i> ${escH(reg.marco3Protocolo || 'RNC')}: ${fmtCurto(dt3)}` : 'Clique para abrir RNC';
+            }
+
             const btn = document.getElementById('btnNotificarGestor');
-            btn.innerHTML = g ? '<i class="fa-solid fa-envelope"></i> Notificar gestor' : '<i class="fa-solid fa-user-plus"></i> Cadastrar gestor';
+            btn.innerHTML = g
+                ? '<i class="fa-solid fa-envelope"></i> Notificar gestor <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>'
+                : '<i class="fa-solid fa-user-plus"></i> Cadastrar gestor';
             btn.onclick = () => notificarGestor(centro);
+
             const btnZap = document.getElementById('btnCopiarWhatsAppGestor');
             if (btnZap) {
                 btnZap.onclick = () => copiarNotificacaoWhatsApp(centro);
@@ -8780,7 +9661,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
         window.copiarNotificacaoWhatsApp = function (centro) {
             const g = getGestor(centro) || { nome: 'Gestor(a)' };
-            const { assunto, corpo } = montarEmailGestor(centro, g);
+            const { assunto, corpo } = montarEmailGestor(centro, g, 1);
             const textoZap = `*${assunto}*\n\n${corpo}`;
             navigator.clipboard.writeText(textoZap).then(() => {
                 mostrarAviso(`📲 <strong>Mensagem de cobrança copiada!</strong> Agora é só colar no WhatsApp ou Teams de <strong>${escH(g.nome)}</strong>.`, 4500);
@@ -8838,7 +9719,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             carregarModeloNaTela();
         };
 
-        function montarEmailGestor(centro, g) {
+        function montarEmailGestor(centro, g, opcaoMarco, protocoloRnc) {
             const it = (window.listaAtualJustificativa || []).find(i => i.centro === centro);
             const contas = rawExcelData.filter(r =>
                 normC(r.centro) === normC(centro) && contasSelecionadasJust.has(r.conta) &&
@@ -8846,30 +9727,82 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 !(r.justificativa && r.justificativa.trim() && r.justificativa.trim() !== '-')
             ).sort((a, b) => (b.realizado - b.orcado) - (a.realizado - a.orcado));
 
+            let listaContasTxt = "";
+            let usadas = 0;
+            for (const c of contas) {
+                const linha = `- ${c.conta} ${c.descricao}: ${formatMoeda(c.realizado - c.orcado)} acima\n`;
+                if (listaContasTxt.length + linha.length > 950) break;
+                listaContasTxt += linha;
+                usadas++;
+            }
+            if (contas.length > usadas) {
+                listaContasTxt += `... e mais ${contas.length - usadas} conta(s). Consulte o detalhamento no sistema.\n`;
+            }
+            const textoContasFinal = listaContasTxt.trimEnd() || '(nenhuma conta listada)';
+
+            const comp = competenciaAtual || 'vigente';
+            const orcadoStr = it ? formatMoeda(it.orcado) : '-';
+            const realizadoStr = it ? formatMoeda(it.realizado) : '-';
+            const variacaoStr = it ? formatMoeda(it.variacao) : '-';
+            const nomeGestor = g && g.nome ? g.nome : 'Gestor(a)';
+
+            if (opcaoMarco === 1) {
+                const assunto = `[7º DIA ÚTIL - LEMBRETE DE ANÁLISE] Pendência Orçamentária - ${comp} - ${centro}`;
+                const corpo = `Prezado(a) ${nomeGestor},\n\n` +
+                    `Lembramos que o prazo regulamentar de 6 (seis) dias úteis para a realização da Análise Orçamentária da competência ${comp} encerrou-se, e hoje atingimos o 7º Dia Útil (1º Marco Importante de Lembrete) sem identificarmos a justificativa do centro de custo "${centro}".\n\n` +
+                    `Resumo do Centro de Custo (${comp}):\n` +
+                    `• Orçado: ${orcadoStr}\n` +
+                    `• Realizado: ${realizadoStr}\n` +
+                    `• Variação (Estouro): ${variacaoStr}\n\n` +
+                    `Contas com estouro pendentes de justificativa:\n${textoContasFinal}\n\n` +
+                    `Solicitamos a realização imediata da análise no sistema de Gestão de Custos HMDCC para evitar o avanço ao 2º Marco (Notificação de Não Realização).\n\n` +
+                    `Atenciosamente,\nEquipe de Custos e Orçamento - HMDCC`;
+                return { assunto, corpo };
+            }
+
+            if (opcaoMarco === 2) {
+                const assunto = `[NÃO REALIZAÇÃO DA ANÁLISE ORÇAMENTÁRIA] 2º Marco Importante - ${comp} - ${centro}`;
+                const corpo = `Prezado(a) ${nomeGestor},\n\n` +
+                    `Após o encerramento do prazo inicial de 6 dias úteis e o envio do Lembrete no 7º Dia Útil (1º Marco), constatamos a NÃO REALIZAÇÃO da Análise Orçamentária referente ao centro de custo "${centro}" na competência ${comp}.\n\n` +
+                    `Resumo do Centro de Custo (${comp}):\n` +
+                    `• Orçado: ${orcadoStr}\n` +
+                    `• Realizado: ${realizadoStr}\n` +
+                    `• Variação (Estouro): ${variacaoStr}\n\n` +
+                    `Contas com estouro sem justificativa:\n${textoContasFinal}\n\n` +
+                    `Este comunicado constitui o 2º Marco Importante (Não Realização da Análise Orçamentária). Caso não haja regularização imediata, será emitido o Relatório de Não Conformidade (RNC).\n\n` +
+                    `Atenciosamente,\nEquipe de Custos e Orçamento - HMDCC`;
+                return { assunto, corpo };
+            }
+
+            if (opcaoMarco === 3) {
+                const codRnc = protocoloRnc || `RNC-${comp.replace('/', '')}`;
+                const assunto = `[RELATÓRIO DE NÃO CONFORMIDADE - ${codRnc}] Ausência de Análise Orçamentária - ${comp} - ${centro}`;
+                const corpo = `Prezado(a) ${nomeGestor},\n\n` +
+                    `Tendo em vista o esgotamento do prazo regulamentar de 6 dias úteis, o lembrete enviado no 7º Dia Útil (1º Marco) e a notificação de Não Realização da Análise Orçamentária (2º Marco) sem resposta no sistema, comunicamos a abertura do RELATÓRIO DE NÃO CONFORMIDADE (${codRnc}) para o centro de custo "${centro}" na competência ${comp}.\n\n` +
+                    `Resumo do Desvio Não Justificado (${comp}):\n` +
+                    `• Protocolo RNC: ${codRnc}\n` +
+                    `• Orçado: ${orcadoStr}\n` +
+                    `• Realizado: ${realizadoStr}\n` +
+                    `• Variação (Estouro): ${variacaoStr}\n\n` +
+                    `Contas contábeis em não conformidade:\n${textoContasFinal}\n\n` +
+                    `Solicitamos tratativa imediata junto à Controladoria e Gestão de Custos.\n\n` +
+                    `Atenciosamente,\nEquipe de Custos e Orçamento - HMDCC`;
+                return { assunto, corpo };
+            }
+
             const mapa = {
-                '{gestor}': g.nome,
+                '{gestor}': nomeGestor,
                 '{centro}': centro,
-                '{competencia}': competenciaAtual || 'vigente',
-                '{orcado}': it ? formatMoeda(it.orcado) : '-',
-                '{realizado}': it ? formatMoeda(it.realizado) : '-',
-                '{variacao}': it ? formatMoeda(it.variacao) : '-'
+                '{competencia}': comp,
+                '{orcado}': orcadoStr,
+                '{realizado}': realizadoStr,
+                '{variacao}': variacaoStr,
+                '{contas}': textoContasFinal
             };
             const aplicar = txt => Object.keys(mapa).reduce((t, k) => t.split(k).join(mapa[k]), txt);
 
             const assunto = aplicar(modeloEmail.assunto);
-            let corpo = aplicar(modeloEmail.corpo);
-
-            if (corpo.includes('{contas}')) {
-                const orcamento = Math.max(200, 1500 - (corpo.length - '{contas}'.length));
-                let lista = "", usadas = 0;
-                for (const c of contas) {
-                    const linha = `- ${c.conta} ${c.descricao}: ${formatMoeda(c.realizado - c.orcado)} acima\n`;
-                    if (lista.length + linha.length > orcamento) break;
-                    lista += linha; usadas++;
-                }
-                if (contas.length > usadas) lista += `... e mais ${contas.length - usadas} conta(s). Consulte o detalhamento no sistema.\n`;
-                corpo = corpo.split('{contas}').join(lista.trimEnd() || '(nenhuma conta listada)');
-            }
+            const corpo = aplicar(modeloEmail.corpo);
             return { assunto, corpo };
         }
 
@@ -8925,37 +9858,54 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             a.click();
         }
 
-        function abrirGmail(centro, janela) {
-            const g = getGestor(centro);
-            const { assunto, corpo } = montarEmailGestor(centro, g);
-            const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(g.email)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-            try {
-                if (janela && !janela.closed) {
-                    janela.location.href = url;
-                } else {
-                    window.open(url, '_blank');
-                }
-            } catch (err) {
-                window.open(url, '_blank');
-            }
-            registrarEnvioEmailAuditoria(centro, g.email, g.nome, competenciaAtual);
-        }
-
-        window.notificarGestor = async function (centro) {
+        // Ao clicar em "Notificar gestor", abre/alterna as 3 opções: 7º Dia Útil / Não realização / RNC
+        window.notificarGestor = function (centro) {
             if (!getGestor(centro)) {
                 alert('Este centro ainda não tem gestor cadastrado. Cadastre o nome e o e-mail para continuar.');
                 abrirModalGestores(centro);
                 return;
             }
-            // Abre imediatamente a aba com o Gmail para evitar bloqueios de pop-up pelo navegador
+            const painel = document.getElementById('painelOpcoesNotificarGestor');
+            if (painel) {
+                painel.classList.toggle('hidden');
+            }
+        };
+
+        // Executa o disparo e registro da opção escolhida (1 = 7º Dia Útil, 2 = Não Realização, 3 = RNC)
+        window.dispararNotificacaoGestorPorOpcao = async function (centro, opcaoMarco) {
+            if (!centro) centro = window.centroModalAtual;
             const g = getGestor(centro);
-            const { assunto, corpo } = montarEmailGestor(centro, g);
+            if (!g) {
+                alert('Este centro ainda não tem gestor cadastrado. Cadastre o nome e o e-mail para continuar.');
+                abrirModalGestores(centro);
+                return;
+            }
+
+            const comp = (competenciaAtual && competenciaAtual !== 'Vigente') ? competenciaAtual : '09/2026';
+            let protocoloRnc = '';
+
+            if (opcaoMarco === 3) {
+                const regExistente = obterRegistroAuditoriaDoCentroNoMes(centro, comp);
+                const sugestaoRnc = (regExistente && regExistente.marco3Protocolo)
+                    ? regExistente.marco3Protocolo
+                    : `RNC-${comp.replace('/', '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+                const resp = prompt(
+                    `🚨 RELATÓRIO DE NÃO CONFORMIDADE (RNC - 3º MARCO)\n\nCentro de Custo: ${centro} (${comp})\nGestor: ${g.nome}\n\nInforme o código/protocolo da RNC (ou confirme o código gerado):`,
+                    sugestaoRnc
+                );
+                if (resp === null) return;
+                protocoloRnc = resp.trim() || sugestaoRnc;
+            }
+
+            const { assunto, corpo } = montarEmailGestor(centro, g, opcaoMarco, protocoloRnc);
             const urlGmail = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(g.email)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-            const janela = window.open(urlGmail, '_blank');
+            window.open(urlGmail, '_blank');
 
             const btn = document.getElementById('btnNotificarGestor');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando print...';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando print...';
+            }
 
             const blobPromise = gerarPrintDetalhamento(centro);
             blobPromise.catch(() => { });
@@ -8977,13 +9927,23 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 }
             }
 
-            notificacoes[`${competenciaAtual}|${centro}`] = new Date().toISOString();
+            const agoraIso = new Date().toISOString();
+            notificacoes[`${comp}|${centro}`] = agoraIso;
             lsSet(LS_NOTIF, notificacoes);
+
+            // Salva no histórico de auditoria do mês com o marco específico acionado!
             try {
-                registrarEnvioEmailAuditoria(centro, g.email, g.nome, competenciaAtual);
-            } catch(e) { }
-            btn.disabled = false;
+                await registrarEnvioEmailAuditoria(centro, g.email, g.nome, comp, opcaoMarco, protocoloRnc);
+            } catch (e) {
+                console.warn('Erro ao registrar auditoria:', e);
+            }
+
+            if (btn) btn.disabled = false;
             atualizarBotaoNotificar(centro, true);
+
+            const nomeOpcao = opcaoMarco === 1
+                ? '1º Marco (7º Dia Útil)'
+                : (opcaoMarco === 2 ? '2º Marco (Não Realização da Análise)' : `3º Marco (RNC ${protocoloRnc})`);
 
             if (resultado === 'copiado') {
                 mostrarAviso(`
@@ -8992,8 +9952,8 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                             <i class="fa-solid fa-clipboard-check"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-white text-xs">Print copiado com sucesso!</div>
-                            <div class="text-[11px] text-slate-300 mt-0.5">Abra a aba do Gmail (ou cliente de e-mail), clique no corpo da mensagem e pressione <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-amber-300 font-mono">Ctrl + V</kbd> para colar a imagem.</div>
+                            <div class="font-bold text-white text-xs">${escH(nomeOpcao)} registrado e Print copiado!</div>
+                            <div class="text-[11px] text-slate-300 mt-0.5">Na aba do Gmail aberta, clique no corpo do e-mail e pressione <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-amber-300 font-mono">Ctrl + V</kbd> para colar o quadro de contas.</div>
                         </div>
                     </div>
                 `, 10000);
@@ -9004,20 +9964,20 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                             <i class="fa-solid fa-download"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-white text-xs">Print baixado para o computador!</div>
-                            <div class="text-[11px] text-slate-300 mt-0.5">O navegador não permitiu colar direto. O arquivo <strong>PNG foi baixado</strong>: anexe-o ou arraste-o para o corpo do e-mail.</div>
+                            <div class="font-bold text-white text-xs">${escH(nomeOpcao)} registrado e Print baixado!</div>
+                            <div class="text-[11px] text-slate-300 mt-0.5">O arquivo <strong>PNG foi baixado</strong>: anexe-o ou arraste-o para o corpo do e-mail aberto.</div>
                         </div>
                     </div>
                 `, 8000);
             } else {
                 mostrarAviso(`
                     <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 text-base">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-base">
+                            <i class="fa-solid fa-envelope-circle-check"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-white text-xs">Detalhamento enviado em texto</div>
-                            <div class="text-[11px] text-slate-300 mt-0.5">Não foi possível gerar a imagem, mas o rascunho de e-mail já foi aberto com todo o texto e valores.</div>
+                            <div class="font-bold text-white text-xs">${escH(nomeOpcao)} aberto no Gmail e salvo na Auditoria!</div>
+                            <div class="text-[11px] text-slate-300 mt-0.5">O rascunho de e-mail já foi preenchido com os valores e contas pendentes.</div>
                         </div>
                     </div>
                 `, 6000);
