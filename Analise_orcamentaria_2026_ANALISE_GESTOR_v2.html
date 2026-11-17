@@ -3568,7 +3568,7 @@
         class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10000] p-2 sm:p-4">
         <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[94vh] flex flex-col overflow-hidden border border-slate-200">
             <!-- Topo do Modal -->
-            <div class="px-5 py-4 bg-gradient-to-r from-[#05604e] via-[#06745e] to-[#044f40] text-white flex justify-between items-center shadow-sm">
+            <div class="px-5 py-4 bg-gradient-to-r from-[#05604e] via-[#06745e] to-[#044f40] text-white flex flex-wrap justify-between items-center gap-3 shadow-sm">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-[#00ab97] flex items-center justify-center text-slate-900 font-bold shadow-inner text-lg">
                         <i class="fa-solid fa-envelopes-bulk"></i>
@@ -3576,9 +3576,7 @@
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
                             <h3 class="font-bold text-base leading-tight text-white">Auditoria de Envios & Régua de Cobrança aos Gestores</h3>
-                            <span id="auditHeaderBadgeMesAnalise" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-400 text-slate-900 shadow-2xs">
-                                <i class="fa-regular fa-calendar-check mr-1"></i>Mês de Análise: --
-                            </span>
+                            <span id="auditHeaderBadgeMesAnalise" class="hidden"></span>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-100 border border-emerald-300/30">
                                 <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Sincronizado no Firebase
                             </span>
@@ -3586,9 +3584,23 @@
                         <p class="text-[11px] text-emerald-100 mt-0.5">Acompanhamento dos centros de custo do Mês de Análise nos 3 Marcos Importantes de Cobrança</p>
                     </div>
                 </div>
-                <button onclick="fecharModalAuditoriaEnvios()" class="text-emerald-100 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+                <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-2 bg-[#044a3c] px-3 py-1.5 rounded-lg border border-white/15 shadow-xs">
+                        <i class="fa-solid fa-calendar-day text-[#00ab97] text-xs"></i>
+                        <span class="text-[11px] font-semibold text-emerald-100 whitespace-nowrap">Mês de Análise:</span>
+                        <select id="auditHeaderSelectComp" onchange="aoMudarFiltroCompetenciaAuditoria('HEADER_COMP', this.value)"
+                            class="bg-[#05604e] text-white text-xs font-bold rounded px-2 py-0.5 border border-white/15 focus:outline-none focus:ring-1 focus:ring-[#00ab97] cursor-pointer">
+                            <option value="">Selecione um mês...</option>
+                        </select>
+                        <button type="button" onclick="fecharModalAuditoriaEnvios(); abrirModalCentralCompetencias()" title="Abrir Repositório de Meses"
+                            class="p-1 text-emerald-200 hover:text-white transition-colors ml-0.5 cursor-pointer">
+                            <i class="fa-solid fa-folder-plus text-xs"></i>
+                        </button>
+                    </div>
+                    <button onclick="fecharModalAuditoriaEnvios()" class="text-emerald-100 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Corpo do Modal com Régua Visual, Cards de Marcos, Filtros e Tabela -->
@@ -9427,18 +9439,81 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             renderizarTabelaAuditoriaEnvios();
         };
 
-        window.aoMudarFiltroCompetenciaAuditoria = function (origem) {
+        function aplicarOpcoesCompetenciaAuditoria(anoSelecionado, valorDesejado) {
+            const selComp = document.getElementById('auditFiltroComp');
+            const selHeader = document.getElementById('auditHeaderSelectComp');
+            const todas = Array.isArray(window._auditCompsDisponiveis) ? window._auditCompsDisponiveis : [];
+            const filtradas = (anoSelecionado && anoSelecionado !== 'TODOS')
+                ? todas.filter(c => c.endsWith('/' + anoSelecionado))
+                : todas;
+
+            const htmlOpts = '<option value="">Selecione um mês...</option>' +
+                filtradas.map(c => `<option value="${escH(c)}">${escH(c)}</option>`).join('');
+
+            [selComp, selHeader].forEach(sel => {
+                if (sel) sel.innerHTML = htmlOpts;
+            });
+
+            let valFinal = '';
+            if (valorDesejado && filtradas.includes(valorDesejado)) {
+                valFinal = valorDesejado;
+            } else if (filtradas.length > 0 && valorDesejado !== '') {
+                valFinal = filtradas[0];
+            }
+
+            [selComp, selHeader].forEach(sel => {
+                if (sel) sel.value = valFinal;
+            });
+            return valFinal;
+        }
+
+        window.aoMudarFiltroCompetenciaAuditoria = function (origem, valorDireto) {
             const selAno = document.getElementById('auditFiltroAno');
             const selComp = document.getElementById('auditFiltroComp');
-            if (origem === 'ANO' && selAno && selComp) {
+            const selHeader = document.getElementById('auditHeaderSelectComp');
+
+            if (origem === 'HEADER_COMP') {
+                const novoVal = valorDireto || '';
+                if (selComp) selComp.value = novoVal;
+                if (selHeader) selHeader.value = novoVal;
+            } else if (origem === 'COMP') {
+                const novoVal = selComp ? selComp.value : '';
+                if (selHeader) selHeader.value = novoVal;
+            } else if (origem === 'ANO' && selAno) {
                 const ano = selAno.value;
-                if (ano !== 'TODOS') {
-                    const opcoes = Array.from(selComp.options).map(o => o.value).filter(v => v && v.endsWith('/' + ano));
-                    if (opcoes.length > 0 && (!selComp.value || !selComp.value.endsWith('/' + ano))) {
-                        selComp.value = opcoes[0];
-                    }
+                const valAtual = selComp ? selComp.value : (selHeader ? selHeader.value : '');
+                aplicarOpcoesCompetenciaAuditoria(ano, valAtual || undefined);
+            }
+
+            const compSelecionada = selComp ? selComp.value : (selHeader ? selHeader.value : '');
+            if (compSelecionada && compSelecionada.includes('/') && selAno && selAno.value !== 'TODOS') {
+                const anoComp = compSelecionada.split('/')[1];
+                const temAno = Array.from(selAno.options).some(o => o.value === anoComp);
+                if (temAno && selAno.value !== anoComp) {
+                    selAno.value = anoComp;
                 }
             }
+
+            if (compSelecionada && compSelecionada !== competenciaAtual) {
+                try {
+                    const repo = obterRepositorioCompetencias();
+                    const itemRepo = repo[compSelecionada];
+                    if (itemRepo && Array.isArray(itemRepo.data) && itemRepo.data.length > 0) {
+                        competenciaAtual = compSelecionada;
+                        lsSet(LS_COMP, competenciaAtual);
+                        const mesIdAtivo = compSelecionada.split('/')[0];
+                        if (mesIdAtivo) {
+                            baseAnual[mesIdAtivo] = itemRepo.data;
+                            if (typeof baseAnualOrc === 'object') baseAnualOrc[mesIdAtivo] = itemRepo.data;
+                            if (typeof baseEficienciaAnual === 'object') baseEficienciaAnual[mesIdAtivo] = itemRepo.data;
+                        }
+                        carregarDadosProcessados(itemRepo.data, itemRepo.fileName, true);
+                    }
+                } catch (err) {
+                    console.warn('Erro ao sincronizar competência selecionada na auditoria:', err);
+                }
+            }
+
             renderizarTabelaAuditoriaEnvios();
         };
 
@@ -9580,6 +9655,18 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 });
             } catch (e) {}
 
+            try {
+                if (typeof SEED_COMPETENCIAS_2026 === 'object' && SEED_COMPETENCIAS_2026) {
+                    Object.keys(SEED_COMPETENCIAS_2026).forEach(k => {
+                        if (k && k !== 'Vigente') {
+                            comps.add(k);
+                            const p = k.split('/');
+                            if (p[1]) anos.add(p[1]);
+                        }
+                    });
+                }
+            } catch (e) {}
+
             if (competenciaAtual && competenciaAtual !== 'Vigente') {
                 comps.add(competenciaAtual);
                 const p = competenciaAtual.split('/');
@@ -9597,6 +9684,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
             const selAno = document.getElementById('auditFiltroAno');
             const selComp = document.getElementById('auditFiltroComp');
+            const selHeader = document.getElementById('auditHeaderSelectComp');
 
             if (selAno) {
                 const anoAtivo = (competenciaAtual && competenciaAtual.includes('/')) ? competenciaAtual.split('/')[1] : '';
@@ -9607,39 +9695,42 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 }
             }
 
-            if (selComp) {
-                const valAnterior = selComp.value;
-                const compsOrdenadas = Array.from(comps).sort((a, b) => {
-                    const [ma, aa] = a.split('/');
-                    const [mb, ab] = b.split('/');
-                    return (`${ab || ''}${mb || ''}`).localeCompare(`${aa || ''}${ma || ''}`);
-                });
-                selComp.innerHTML = '<option value="">Selecione o Mês de Análise...</option>' +
-                    compsOrdenadas.map(c => `<option value="${escH(c)}">${escH(c)}</option>`).join('');
+            const compsOrdenadas = Array.from(comps).sort((a, b) => {
+                const [ma, aa] = a.split('/');
+                const [mb, ab] = b.split('/');
+                return (`${ab || ''}${mb || ''}`).localeCompare(`${aa || ''}${ma || ''}`);
+            });
+            window._auditCompsDisponiveis = compsOrdenadas;
 
+            if (selComp || selHeader) {
+                const valAnterior = (selComp && selComp.value) ? selComp.value : (selHeader ? selHeader.value : '');
+                let alvo = '';
                 if (forcarMesAtivo) {
                     if (competenciaAtual && comps.has(competenciaAtual)) {
-                        selComp.value = competenciaAtual;
+                        alvo = competenciaAtual;
                     } else if (compsOrdenadas.length > 0) {
-                        selComp.value = compsOrdenadas[0];
-                    } else {
-                        selComp.value = '';
+                        alvo = compsOrdenadas[0];
                     }
                 } else if (valAnterior && comps.has(valAnterior)) {
-                    selComp.value = valAnterior;
+                    alvo = valAnterior;
                 } else if (competenciaAtual && comps.has(competenciaAtual)) {
-                    selComp.value = competenciaAtual;
+                    alvo = competenciaAtual;
                 } else if (compsOrdenadas.length > 0) {
-                    selComp.value = compsOrdenadas[0];
-                } else {
-                    selComp.value = '';
+                    alvo = compsOrdenadas[0];
                 }
+
+                const anoFiltro = selAno ? selAno.value : 'TODOS';
+                aplicarOpcoesCompetenciaAuditoria(anoFiltro, alvo);
             }
         }
 
         window.renderizarTabelaAuditoriaEnvios = function () {
             const selComp = document.getElementById('auditFiltroComp');
-            const fComp = selComp ? selComp.value : (competenciaAtual || '');
+            const selHeader = document.getElementById('auditHeaderSelectComp');
+            const fComp = selComp ? selComp.value : (selHeader ? selHeader.value : (competenciaAtual || ''));
+            if (selHeader && selHeader.value !== (fComp || '')) {
+                selHeader.value = fComp || '';
+            }
             const fMarco = document.getElementById('auditFiltroMarco') ? document.getElementById('auditFiltroMarco').value : 'TODOS';
             const fBusca = normalizarTexto(document.getElementById('auditBuscaTexto') ? document.getElementById('auditBuscaTexto').value : '');
 
