@@ -603,6 +603,13 @@
                                 <i class="fa-solid fa-gear"></i>
                             </button>
                         </div>
+
+                        <button id="tabCentrosResultado"
+                            title="5 - Centros de Resultado (Agrupamento de Centros de Custo e Visão por Gestor)"
+                            class="w-full px-3.5 py-2.5 text-xs font-semibold rounded text-teal-950 hover:text-white hover:bg-[#008f7e] transition-all flex items-center gap-3 text-left">
+                            <i class="fa-solid fa-sitemap text-base w-5 text-center flex-shrink-0"></i>
+                            <span class="sidebar-text-label truncate">5 - Centros de Resultado</span>
+                        </button>
                     </nav>
                 </div>
 
@@ -669,6 +676,13 @@
                             class="w-full px-3.5 py-2.5 text-xs font-semibold rounded text-teal-950 hover:text-white hover:bg-[#008f7e] transition-all flex items-center gap-3 text-left">
                             <i class="fa-solid fa-envelope-open-text text-teal-900 text-base w-5 text-center flex-shrink-0"></i>
                             <span class="sidebar-text-label truncate">Texto Padrão de Envio</span>
+                        </button>
+
+                        <button id="btnBackupCompleto" onclick="abrirModalBackupCompleto()"
+                            title="Baixar ou restaurar backup completo de planilhas, gestores, grupos e histórico"
+                            class="w-full px-3.5 py-2.5 text-xs font-semibold rounded text-teal-950 hover:text-white hover:bg-[#008f7e] transition-all flex items-center gap-3 text-left">
+                            <i class="fa-solid fa-shield-halved text-teal-900 text-base w-5 text-center flex-shrink-0"></i>
+                            <span class="sidebar-text-label truncate">Backup Completo</span>
                         </button>
 
                         <button id="btnAdminAcessos" onclick="abrirModalAdminAcessos()"
@@ -2876,6 +2890,84 @@
                 </section>
             </div>
 
+            <!-- =================================================================== -->
+            <!-- MÓDULO 5: CENTROS DE RESULTADO (AGRUPAMENTO DE CENTROS DE CUSTO)    -->
+            <!-- =================================================================== -->
+            <div id="moduloCentrosResultado" class="hidden space-y-6">
+                <!-- Cabeçalho do Módulo -->
+                <div class="bg-gradient-to-r from-[#003A66] via-[#005082] to-[#05604e] p-5 rounded-2xl text-white shadow flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-white/15 text-teal-200 border border-white/20 rounded-xl">
+                            <i class="fa-solid fa-sitemap text-2xl"></i>
+                        </div>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h2 class="font-bold text-base md:text-lg">5 - Centros de Resultado</h2>
+                                <span id="badgeMesCentrosResultado" class="px-3 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950 shadow-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-calendar-day"></i> Mês Ativo: --
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-200 mt-0.5">Agrupe centros de custo em Centros de Resultado personalizados ou visualize automaticamente por Gestor.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="abrirModalGrupoCentroResultado()"
+                            class="px-4 py-2 text-xs font-extrabold bg-[#00ab97] hover:bg-[#008f7e] text-white rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-folder-plus"></i> Novo Centro de Resultado
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barra de Alternância de Visão e Busca -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                        <button type="button" id="btnVisaoCR_GRUPOS" onclick="alternarVisaoCentrosResultado('GRUPOS')"
+                            class="px-4 py-2 rounded-lg text-xs font-bold bg-[#05604e] text-white shadow-xs transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-layer-group"></i> Grupos Personalizados
+                        </button>
+                        <button type="button" id="btnVisaoCR_GESTORES" onclick="alternarVisaoCentrosResultado('GESTORES')"
+                            class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-white transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-user-tie"></i> Visão Automática por Gestor
+                        </button>
+                    </div>
+
+                    <div class="relative w-full md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="inputBuscaCentrosResultado" oninput="renderizarCentrosResultado()"
+                            placeholder="Buscar grupo, gestor ou centro de custo..."
+                            class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                    </div>
+                </div>
+
+                <!-- 4 Cards de Resumo da Visão -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Centros de Resultado</span>
+                        <div id="crResumoQtd" class="text-2xl font-extrabold text-slate-800 mt-1">0</div>
+                        <span id="crResumoSubQtd" class="text-[11px] text-slate-400">Grupos exibidos</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Orçado Consolidado</span>
+                        <div id="crResumoOrcado" class="text-2xl font-extrabold text-slate-800 mt-1">R$ 0,00</div>
+                        <span class="text-[11px] text-slate-400">Soma dos grupos listados</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Realizado Consolidado</span>
+                        <div id="crResumoRealizado" class="text-2xl font-extrabold text-slate-800 mt-1">R$ 0,00</div>
+                        <span class="text-[11px] text-slate-400">Custos realizados no mês</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Diferença / Desvio</span>
+                        <div id="crResumoVariacao" class="text-2xl font-extrabold text-slate-800 mt-1">R$ 0,00</div>
+                        <span id="crResumoPerc" class="text-[11px] font-semibold text-slate-500">0,0% do orçado</span>
+                    </div>
+                </div>
+
+                <!-- Grid de Cards dos Centros de Resultado -->
+                <div id="gridCentrosResultado" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                </div>
+            </div>
+
             <!-- RODAPÉ INSTITUCIONAL HMDCC -->
             <footer class="mt-8 border-t border-[#DCE3E8] bg-[#003A66] text-white py-6 px-6 rounded-t-xl shadow-inner">
                 <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
@@ -2906,6 +2998,254 @@
 
         </main>
     </div><!-- Fechamento do Wrapper Geral flex-1 flex w-full -->
+
+    <!-- MODAL: CRIAR / EDITAR CENTRO DE RESULTADO (AGRUPAMENTO) -->
+    <div id="modalConfigCentroResultado"
+        class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10050] p-3 sm:p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-[#00ab97]/20 text-[#00ab97] flex items-center justify-center border border-[#00ab97]/30">
+                        <i class="fa-solid fa-sitemap text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 id="tituloModalGrupoCR" class="font-bold text-base">Novo Centro de Resultado</h3>
+                        <p class="text-[11px] text-slate-300">Agrupe um ou mais centros de custo sob um nome e gestor responsável.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalGrupoCentroResultado()" class="text-slate-400 hover:text-white p-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-4 flex-1 bg-slate-50 text-xs">
+                <input type="hidden" id="inputCRId" value="">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-slate-200">
+                    <div class="md:col-span-1">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nome do Centro de Resultado *</label>
+                        <input type="text" id="inputCRNome" placeholder="Ex: Diretoria Assistencial"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                    </div>
+                    <div class="relative">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Gestor Responsável</label>
+                        <input type="text" id="inputCRGestor" autocomplete="off"
+                            onfocus="abrirAutocompleteGestorCR('NOME')"
+                            oninput="abrirAutocompleteGestorCR('NOME')"
+                            onblur="fecharAutocompleteGestorCRComAtraso('NOME')"
+                            placeholder="Digite ou selecione o gestor..."
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                        <div id="dropdownAutocompleteCRGestor"
+                            class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-52 overflow-y-auto divide-y divide-slate-100">
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">E-mail do Gestor</label>
+                        <input type="email" id="inputCREmail" autocomplete="off"
+                            onfocus="abrirAutocompleteGestorCR('EMAIL')"
+                            oninput="abrirAutocompleteGestorCR('EMAIL')"
+                            onblur="fecharAutocompleteGestorCRComAtraso('EMAIL')"
+                            placeholder="Digite ou selecione o e-mail..."
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                        <div id="dropdownAutocompleteCREmail"
+                            class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-52 overflow-y-auto divide-y divide-slate-100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Centros de Custo deste Grupo</h4>
+                            <p class="text-[11px] text-slate-500">Um mesmo centro de custo pode participar de mais de um grupo.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="crContadorCheckboxes" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">0 selecionado(s)</span>
+                            <button type="button" onclick="selecionarTodosCheckboxesCR(true)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] cursor-pointer">Marcar Todos</button>
+                            <button type="button" onclick="selecionarTodosCheckboxesCR(false)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] cursor-pointer">Limpar</button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="inputBuscaCentrosModalCR" oninput="filtrarCheckboxesModalCR()"
+                            placeholder="Filtrar centros de custo disponíveis..."
+                            class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                    </div>
+
+                    <div id="listaCheckboxesCentrosCR" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto p-1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-white border-t border-slate-200 flex items-center justify-end gap-2">
+                <button type="button" onclick="fecharModalGrupoCentroResultado()"
+                    class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" onclick="salvarGrupoCentroResultado()"
+                    class="px-5 py-2 text-xs font-extrabold bg-[#00ab97] hover:bg-[#008f7e] text-white rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar Centro de Resultado
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DETALHAMENTO DOS CENTROS DE CUSTO DO CENTRO DE RESULTADO -->
+    <div id="modalDetalheCentroResultado"
+        class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10040] p-3 sm:p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-900 text-white flex justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center border border-teal-400/30 shrink-0">
+                        <i class="fa-solid fa-sitemap text-lg"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span id="badgeTipoDetalheCR" class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-teal-500/20 text-teal-300 border border-teal-400/30">Centro de Resultado</span>
+                            <span id="badgeMesDetalheCR" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-400 text-slate-950">Mês: --</span>
+                        </div>
+                        <h3 id="tituloDetalheCR" class="font-extrabold text-sm sm:text-base truncate mt-1">Nome do Centro de Resultado</h3>
+                        <p id="subtituloDetalheCR" class="text-[11px] text-slate-300">Gestor responsável e composição dos centros de custo</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalDetalheCentroResultado()" class="text-slate-400 hover:text-white p-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-4 flex-1 bg-slate-50">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase">Orçado do Grupo</span>
+                        <div id="detCROrcado" class="text-lg font-extrabold text-slate-800 mt-1">R$ 0,00</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase">Realizado do Grupo</span>
+                        <div id="detCRRealizado" class="text-lg font-extrabold text-slate-800 mt-1">R$ 0,00</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase">Diferença (R$)</span>
+                        <div id="detCRVariacao" class="text-lg font-extrabold text-slate-800 mt-1">R$ 0,00</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase">Consumo / Desvio (%)</span>
+                        <div id="detCRPerc" class="text-lg font-extrabold text-slate-800 mt-1">0,0%</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+                    <div class="p-3.5 border-b border-slate-100 flex items-center justify-between">
+                        <h4 class="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Centros de Custo que Compõem este Centro de Resultado</h4>
+                        <span id="detCRQtdCentros" class="text-[11px] font-semibold text-slate-500">0 centro(s)</span>
+                    </div>
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-800 text-white font-bold uppercase text-[10px] sticky top-0">
+                                <tr>
+                                    <th class="p-2.5">Centro de Custo</th>
+                                    <th class="p-2.5">Gestor</th>
+                                    <th class="p-2.5 text-right">Orçado (R$)</th>
+                                    <th class="p-2.5 text-right">Realizado (R$)</th>
+                                    <th class="p-2.5 text-right">Diferença (R$)</th>
+                                    <th class="p-2.5 text-right">Consumo (%)</th>
+                                    <th class="p-2.5 text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyDetalheCR" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-white border-t border-slate-200 flex items-center justify-end">
+                <button type="button" onclick="fecharModalDetalheCentroResultado()"
+                    class="px-5 py-2 text-xs font-extrabold bg-slate-800 hover:bg-slate-700 text-white rounded-lg cursor-pointer">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: BACKUP COMPLETO DO SISTEMA (EXPORTAR / RESTAURAR) -->
+    <div id="modalBackupCompleto"
+        class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10050] p-3 sm:p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-xl w-full flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center border border-emerald-400/30">
+                        <i class="fa-solid fa-shield-halved text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">Backup Completo do Sistema</h3>
+                        <p class="text-[11px] text-slate-300">Salve ou restaure todos os dados em 1 clique</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalBackupCompleto()" class="text-slate-400 hover:text-white p-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 bg-slate-50 text-xs">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Meses Salvos</span>
+                        <strong id="bkQtdMeses" class="text-xl font-black text-slate-800">0</strong>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Gestores</span>
+                        <strong id="bkQtdGestores" class="text-xl font-black text-slate-800">0</strong>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Centros Result.</span>
+                        <strong id="bkQtdCR" class="text-xl font-black text-slate-800">0</strong>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Cobranças</span>
+                        <strong id="bkQtdEnvios" class="text-xl font-black text-slate-800">0</strong>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-download text-emerald-600"></i> 1. Baixar Cópia de Segurança
+                        </h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            Gera um único arquivo <code>.json</code> com todas as planilhas mensais, gestores, Centros de Resultado, configurações, textos de e-mail e histórico de cobranças.
+                        </p>
+                    </div>
+                    <button type="button" onclick="baixarBackupCompletoSistema()"
+                        class="w-full py-2.5 px-4 bg-[#00ab97] hover:bg-[#008f7e] text-white font-extrabold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-file-arrow-down"></i> Baixar Backup Completo Agora
+                    </button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-3">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-upload text-amber-600"></i> 2. Restaurar de um Arquivo de Backup
+                        </h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            Selecione um arquivo <code>Backup_Sistema_HMDCC...json</code> salvo anteriormente para restaurar os dados locais e na nuvem.
+                        </p>
+                    </div>
+                    <input type="file" id="inputRestaurarBackupSistema" accept=".json,application/json" class="hidden"
+                        onchange="restaurarBackupCompletoSistema(this.files[0]); this.value='';">
+                    <button type="button" onclick="document.getElementById('inputRestaurarBackupSistema').click()"
+                        class="w-full py-2.5 px-4 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-rotate-left"></i> Selecionar Arquivo e Restaurar
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-white border-t border-slate-200 flex justify-end">
+                <button type="button" onclick="fecharModalBackupCompleto()"
+                    class="px-5 py-2 text-xs font-extrabold bg-slate-800 hover:bg-slate-700 text-white rounded-lg cursor-pointer">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL DA ENGRENAGEM: CONFIGURAÇÃO DE PROPORÇÃO E CONTAS DA EFICIÊNCIA DO ORÇAMENTO -->
     <div id="modalConfigEficiencia"
@@ -3654,10 +3994,22 @@
                     </div>
                 </div>
 
-                <!-- 4 Cards Interativos de Resumo por Marco / Status (Sincronizados com o Mês de Análise) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- 5 Cards Interativos de Resumo por Marco / Status (Sincronizados com o Mês de Análise) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+                    <button type="button" onclick="filtrarAuditoriaPorMarco('PENDENTE_ENVIO')" id="cardAuditMarco_PENDENTE_ENVIO"
+                        class="text-left bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-400 hover:shadow-md transition-all flex items-center justify-between cursor-pointer">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Pendentes 1º Envio</span>
+                            <div id="auditCountPendenteEnvio" class="text-2xl font-black text-slate-800 mt-0.5">0</div>
+                            <span class="text-[10px] text-slate-500 font-medium block">Com estouro sem e-mail</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                    </button>
+
                     <button type="button" onclick="filtrarAuditoriaPorMarco('MARCO_1')" id="cardAuditMarco_MARCO_1"
-                        class="text-left bg-white p-3.5 rounded-xl border border-amber-200 shadow-2xs hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between">
+                        class="text-left bg-white p-3.5 rounded-xl border border-amber-200 shadow-2xs hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between cursor-pointer">
                         <div>
                             <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">1º Marco (7º Dia Útil)</span>
                             <div id="auditCountMarco1" class="text-2xl font-black text-amber-600 mt-0.5">0</div>
@@ -3669,7 +4021,7 @@
                     </button>
 
                     <button type="button" onclick="filtrarAuditoriaPorMarco('MARCO_2')" id="cardAuditMarco_MARCO_2"
-                        class="text-left bg-white p-3.5 rounded-xl border border-orange-200 shadow-2xs hover:border-orange-400 hover:shadow-md transition-all flex items-center justify-between">
+                        class="text-left bg-white p-3.5 rounded-xl border border-orange-200 shadow-2xs hover:border-orange-400 hover:shadow-md transition-all flex items-center justify-between cursor-pointer">
                         <div>
                             <span class="text-[10px] font-bold text-orange-600 uppercase tracking-wider block">2º Marco Importante</span>
                             <div id="auditCountMarco2" class="text-2xl font-black text-orange-600 mt-0.5">0</div>
@@ -3681,7 +4033,7 @@
                     </button>
 
                     <button type="button" onclick="filtrarAuditoriaPorMarco('MARCO_3')" id="cardAuditMarco_MARCO_3"
-                        class="text-left bg-white p-3.5 rounded-xl border border-rose-200 shadow-2xs hover:border-rose-400 hover:shadow-md transition-all flex items-center justify-between">
+                        class="text-left bg-white p-3.5 rounded-xl border border-rose-200 shadow-2xs hover:border-rose-400 hover:shadow-md transition-all flex items-center justify-between cursor-pointer">
                         <div>
                             <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">3º Marco Importante</span>
                             <div id="auditCountMarco3" class="text-2xl font-black text-rose-600 mt-0.5">0</div>
@@ -3693,7 +4045,7 @@
                     </button>
 
                     <button type="button" onclick="filtrarAuditoriaPorMarco('CONCLUIDO')" id="cardAuditMarco_CONCLUIDO"
-                        class="text-left bg-white p-3.5 rounded-xl border border-emerald-200 shadow-2xs hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between">
+                        class="text-left bg-white p-3.5 rounded-xl border border-emerald-200 shadow-2xs hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between cursor-pointer">
                         <div>
                             <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Análise Realizada</span>
                             <div id="auditCountConcluido" class="text-2xl font-black text-emerald-700 mt-0.5">0</div>
@@ -3738,11 +4090,12 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Filtrar por Marco / Etapa</label>
                                 <select id="auditFiltroMarco" onchange="renderizarTabelaAuditoriaEnvios()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
-                                    <option value="TODOS">Todos do Mês (Pendentes + Concluídos)</option>
+                                    <option value="TODOS">Todos Notificados Pendentes no Mês</option>
+                                    <option value="PENDENTE_ENVIO">⏳ Pendentes de 1º Envio (Com Estouro sem E-mail)</option>
                                     <option value="MARCO_1">🔔 1º Marco: Lembrete (7º Dia Útil)</option>
                                     <option value="MARCO_2">⚠️ 2º Marco: E-mail de Não Realização</option>
                                     <option value="MARCO_3">🚨 3º Marco: Abertura de Não Conformidade</option>
-                                    <option value="CONCLUIDO">✅ Análise Realizada / Justificados</option>
+                                    <option value="CONCLUIDO">✅ Análise Realizada / Justificados no Mês</option>
                                 </select>
                             </div>
                         </div>
@@ -4194,10 +4547,20 @@
                         <p class="text-xs text-slate-400">Composição das contas contábeis do centro de custo</p>
                     </div>
                 </div>
-                <button onclick="fecharModal()"
-                    class="text-slate-400 hover:text-white hover:bg-slate-800 p-2 rounded-xl text-lg transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" onclick="exportarDetalhesCentroPDF()"
+                        class="px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs">
+                        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                    </button>
+                    <button type="button" onclick="exportarDetalhesCentroExcel()"
+                        class="px-3 py-1.5 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs">
+                        <i class="fa-solid fa-file-excel"></i> Exportar Excel
+                    </button>
+                    <button onclick="fecharModal()"
+                        class="text-slate-400 hover:text-white hover:bg-slate-800 p-2 rounded-xl text-lg transition-colors cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
 
             <div id="modalCorpoCaptura" class="p-6 space-y-5 overflow-y-auto flex-1">
@@ -4409,6 +4772,10 @@
                             class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors">
                             34 Contas Padrão (<span id="countModalPadrao">0</span>)
                         </button>
+                        <button type="button" onclick="filtrarItensModal('ESTOURADAS')" id="btnModalFiltroEstouradas"
+                            class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer">
+                            Só Contas Estouradas (<span id="countModalEstouradas">0</span>)
+                        </button>
                         <button type="button" onclick="filtrarItensModal('RECEITAS')" id="btnModalFiltroReceitas"
                             class="hidden px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors">
                             Receitas (<span id="countModalReceitas">0</span>)
@@ -4577,6 +4944,8 @@
             if (tabEfic) tabEfic.className = "flex-1 min-w-0 px-3.5 py-2.5 text-xs font-semibold rounded text-teal-950 hover:text-white hover:bg-[#008f7e] transition-all flex items-center gap-3 text-left";
             const tabEficAnual = document.getElementById('tabEficienciaAnual');
             if (tabEficAnual) tabEficAnual.className = "flex-1 min-w-0 px-3.5 py-2.5 text-xs font-semibold rounded text-teal-950 hover:text-white hover:bg-[#008f7e] transition-all flex items-center gap-3 text-left";
+            const tabCR = document.getElementById('tabCentrosResultado');
+            if (tabCR) tabCR.className = inativoClass;
 
             document.getElementById('moduloMensal').classList.add('hidden');
             document.getElementById('moduloJustificativa').classList.add('hidden');
@@ -4588,6 +4957,8 @@
             if (modEfic) modEfic.classList.add('hidden');
             const modEficAnual = document.getElementById('moduloEficienciaAnual');
             if (modEficAnual) modEficAnual.classList.add('hidden');
+            const modCR = document.getElementById('moduloCentrosResultado');
+            if (modCR) modCR.classList.add('hidden');
         }
 
         const ativoClass = "w-full px-3.5 py-2.5 text-xs font-semibold rounded bg-[#05604e] text-white shadow transition-all flex items-center gap-3 text-left";
@@ -4685,6 +5056,18 @@
             document.getElementById('moduloEficienciaAnual').classList.remove('hidden');
             abrirModuloEficienciaAnual();
         });
+
+        const tabCRBtn = document.getElementById('tabCentrosResultado');
+        if (tabCRBtn) {
+            tabCRBtn.addEventListener('click', () => {
+                resetMenuButtons();
+                tabCRBtn.className = ativoClass;
+                atualizarCorFundoMain('centros_resultado');
+                if (document.getElementById('bannerAguardandoMes')) document.getElementById('bannerAguardandoMes').classList.add('hidden');
+                document.getElementById('moduloCentrosResultado').classList.remove('hidden');
+                renderizarCentrosResultado();
+            });
+        }
 
         // Alternância do Menu Lateral (Recolher / Expandir)
         window.alternarSidebar = function () {
@@ -6343,10 +6726,15 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
             const tabJustEl = document.getElementById('tabJustificativa');
             const tabEficEl = document.getElementById('tabEficiencia');
+            const tabCREl = document.getElementById('tabCentrosResultado');
             const tabAnualEl = document.getElementById('tabAnual');
             const tabCompOrcEl = document.getElementById('tabComparativaOrcamentaria');
 
-            if (tabEficEl && tabEficEl.classList.contains('bg-[#05604e]')) {
+            if (tabCREl && tabCREl.classList.contains('bg-[#05604e]')) {
+                atualizarCorFundoMain('centros_resultado');
+                document.getElementById('moduloCentrosResultado').classList.remove('hidden');
+                if (typeof renderizarCentrosResultado === 'function') renderizarCentrosResultado();
+            } else if (tabEficEl && tabEficEl.classList.contains('bg-[#05604e]')) {
                 atualizarCorFundoMain('eficiencia');
                 document.getElementById('moduloEficiencia').classList.remove('hidden');
                 atualizarDashboardEficiencia();
@@ -7724,12 +8112,17 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             window.itensModalAtuais = itensDoCentro;
             document.getElementById('modalTituloCentro').textContent = `Detalhamento: ${nomeCentro}`;
 
-            let countCustos = 0, countReceitas = 0, countPadrao = 0, countSelecionadas = 0;
+            let countCustos = 0, countReceitas = 0, countPadrao = 0, countSelecionadas = 0, countEstouradas = 0;
 
             itensDoCentro.forEach(item => {
                 const isRec = item.conta && item.conta.startsWith('3');
                 if (isRec) countReceitas++;
-                else countCustos++;
+                else {
+                    countCustos++;
+                    if ((Number(item.realizado) || 0) - (Number(item.orcado) || 0) > 0.01) {
+                        countEstouradas++;
+                    }
+                }
 
                 const matchPadrao = CONTAS_PADRAO.some(cod => item.conta && (item.conta.includes(cod) || cod.includes(item.conta)));
                 if (matchPadrao) countPadrao++;
@@ -7740,6 +8133,8 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             document.getElementById('countModalTodos').textContent = itensDoCentro.length;
             document.getElementById('countModalCustos').textContent = countCustos;
             document.getElementById('countModalPadrao').textContent = countPadrao;
+            const elCountEst = document.getElementById('countModalEstouradas');
+            if (elCountEst) elCountEst.textContent = countEstouradas;
             document.getElementById('countModalReceitas').textContent = countReceitas;
             const elCountSel = document.getElementById('countModalSelecionadas');
             if (elCountSel) elCountSel.textContent = countSelecionadas;
@@ -7782,6 +8177,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             const btnTodos = document.getElementById('btnModalFiltroTodos');
             const btnCustos = document.getElementById('btnModalFiltroCustos');
             const btnPadrao = document.getElementById('btnModalFiltroPadrao');
+            const btnEstouradas = document.getElementById('btnModalFiltroEstouradas');
             const btnRec = document.getElementById('btnModalFiltroReceitas');
 
             if (btnSelecionadas) {
@@ -7793,6 +8189,9 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             if (btnPadrao) {
                 btnPadrao.className = `px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${filtro === 'PADRAO' ? 'bg-amber-600 text-white shadow-xs' : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'}`;
             }
+            if (btnEstouradas) {
+                btnEstouradas.className = `px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${filtro === 'ESTOURADAS' ? 'bg-rose-600 text-white shadow-xs' : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'}`;
+            }
             btnRec.className = `px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${filtro === 'RECEITAS' ? 'bg-emerald-700 text-white' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'} ${btnRec.classList.contains('hidden') ? 'hidden' : ''}`;
 
             const itens = (window.itensModalAtuais || []).filter(item => {
@@ -7800,6 +8199,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (filtro === 'SELECIONADAS') return contasSelecionadasJust.has(item.conta);
                 if (filtro === 'CUSTOS') return !isRec;
                 if (filtro === 'RECEITAS') return isRec;
+                if (filtro === 'ESTOURADAS') return !isRec && ((Number(item.realizado) || 0) - (Number(item.orcado) || 0)) > 0.01;
                 if (filtro === 'PADRAO') {
                     return CONTAS_PADRAO.some(cod => item.conta && (item.conta.includes(cod) || cod.includes(item.conta)));
                 }
@@ -7916,6 +8316,207 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 m.classList.add('hidden');
                 m.classList.remove('flex');
             }, 200);
+        };
+
+        function parseNumeroBRModalDetalhes(str) {
+            const limpo = String(str || '').replace(/[^\d,-]/g, '').replace(/\./g, '').replace(',', '.');
+            const n = parseFloat(limpo);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function obterLinhasAtuaisModalDetalhes() {
+            const trs = document.querySelectorAll('#modalTabelaItensBody tr');
+            const lista = [];
+            trs.forEach(tr => {
+                const inpConta = tr.querySelector('input[data-campo="conta"]');
+                const inpDesc = tr.querySelector('input[data-campo="descricao"]');
+                const inpOrc = tr.querySelector('input[data-campo="orcado"]');
+                const inpReal = tr.querySelector('input[data-campo="realizado"]');
+                const inpJust = tr.querySelector('input[data-campo="justificativa"]');
+                if (!inpConta) return;
+                const conta = inpConta.value.trim();
+                const descricao = inpDesc ? inpDesc.value.trim() : '';
+                const orcado = inpOrc ? parseNumeroBRModalDetalhes(inpOrc.value) : 0;
+                const realizado = inpReal ? parseNumeroBRModalDetalhes(inpReal.value) : 0;
+                const variacao = realizado - orcado;
+                const isRec = conta.startsWith('3');
+                const tipo = isRec ? 'RECEITA' : (conta.startsWith('5') ? 'DESPESA' : 'CUSTO');
+                const perc = orcado > 0 ? (realizado / orcado) * 100 : (realizado > 0 ? 100 : 0);
+                const justificativa = inpJust ? inpJust.value.trim() : '';
+                lista.push({ conta, descricao, tipo, isRec, orcado, realizado, variacao, perc, justificativa });
+            });
+            return lista;
+        }
+
+        window.exportarDetalhesCentroExcel = function () {
+            const linhas = obterLinhasAtuaisModalDetalhes();
+            if (linhas.length === 0) {
+                alert('Nenhuma conta exibida para exportar.');
+                return;
+            }
+            const nomeCentro = window.centroModalAtual || 'Centro_de_Custo';
+            const comp = competenciaAtual || 'Mes_Ativo';
+            const dadosPlanilha = linhas.map(l => ({
+                'Centro de Custo': nomeCentro,
+                'Competência': comp,
+                'Tipo': l.tipo,
+                'Conta Contábil': l.conta,
+                'Descrição / Natureza': l.descricao,
+                'Orçado (R$)': Number(l.orcado.toFixed(2)),
+                'Realizado (R$)': Number(l.realizado.toFixed(2)),
+                'Variação (R$)': Number(l.variacao.toFixed(2)),
+                'Consumo (%)': Number(l.perc.toFixed(1)),
+                'Justificativa': l.justificativa || '-'
+            }));
+            const ws = XLSX.utils.json_to_sheet(dadosPlanilha);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Detalhamento_Contas');
+            const nomeArq = `Detalhamento_${nomeCentro.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40)}_${comp.replace('/', '-')}.xlsx`;
+            XLSX.writeFile(wb, nomeArq);
+        };
+
+        window.exportarDetalhesCentroPDF = function () {
+            const linhas = obterLinhasAtuaisModalDetalhes();
+            if (linhas.length === 0) {
+                alert('Nenhuma conta exibida para exportar em PDF.');
+                return;
+            }
+            const nomeCentro = window.centroModalAtual || (document.getElementById('modalTituloCentro')?.textContent || 'Centro de Custo');
+            const comp = competenciaAtual || 'Mês Ativo';
+            const g = typeof getGestor === 'function' ? getGestor(nomeCentro) : null;
+            const orcTotal = document.getElementById('modalOrcadoTotal')?.textContent || 'R$ 0,00';
+            const realTotal = document.getElementById('modalRealizadoTotal')?.textContent || 'R$ 0,00';
+            const varTotal = document.getElementById('modalVariacaoTotal')?.textContent || 'R$ 0,00';
+            const varTotalCls = document.getElementById('modalVariacaoTotal')?.className || 'font-bold text-base mt-0.5 text-slate-800';
+            const temRec = document.getElementById('modalSecaoReceitas') && !document.getElementById('modalSecaoReceitas').classList.contains('hidden');
+            const orcRec = document.getElementById('modalOrcadoReceita')?.textContent || 'R$ 0,00';
+            const realRec = document.getElementById('modalRealizadoReceita')?.textContent || 'R$ 0,00';
+            const varRec = document.getElementById('modalVariacaoReceita')?.textContent || 'R$ 0,00';
+            const agoraData = new Date().toLocaleString('pt-BR');
+            const filtroLabel = {
+                SELECIONADAS: 'Contas do Relatório',
+                TODOS: 'Todas as Contas',
+                CUSTOS: 'Custos e Despesas',
+                PADRAO: '34 Contas Padrão',
+                ESTOURADAS: 'Só Contas Estouradas',
+                RECEITAS: 'Receitas'
+            }[window.filtroModalTipo] || 'Todas as Contas';
+
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert('Pop-up bloqueado pelo navegador. Permita pop-ups para exportar o PDF.');
+                return;
+            }
+
+            const linhasHtml = linhas.map(l => {
+                const corVar = l.isRec
+                    ? (l.variacao >= 0 ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold')
+                    : (l.variacao > 0.01 ? 'text-rose-700 font-bold' : 'text-emerald-700 font-bold');
+                const sinal = (l.variacao > 0) ? '+' : '';
+                const badgeTipo = l.tipo === 'RECEITA'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : (l.tipo === 'DESPESA' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800');
+                return `
+                    <tr class="border-b border-slate-100">
+                        <td class="p-2 font-mono whitespace-nowrap">
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${badgeTipo} mr-1">${escH(l.tipo)}</span>
+                            ${escH(l.conta)}
+                        </td>
+                        <td class="p-2 font-medium text-slate-800">${escH(l.descricao)}</td>
+                        <td class="p-2 text-right whitespace-nowrap">${formatMoeda(l.orcado)}</td>
+                        <td class="p-2 text-right whitespace-nowrap">${formatMoeda(l.realizado)}</td>
+                        <td class="p-2 text-right whitespace-nowrap ${corVar}">${sinal}${formatMoeda(l.variacao)}</td>
+                        <td class="p-2 text-center whitespace-nowrap font-semibold">${l.perc.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</td>
+                        <td class="p-2 text-slate-700 italic">${escH(l.justificativa || '-')}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const blocoRecHtml = temRec ? `
+                <div class="bg-emerald-50/40 p-3 rounded-xl border border-emerald-200 grid grid-cols-3 gap-3 text-xs">
+                    <div class="bg-white p-2.5 rounded-lg border border-slate-200"><span class="text-[10px] text-slate-500">Orçado Receitas</span><div class="font-bold text-sm">${escH(orcRec)}</div></div>
+                    <div class="bg-white p-2.5 rounded-lg border border-slate-200"><span class="text-[10px] text-slate-500">Realizado Receitas</span><div class="font-bold text-sm">${escH(realRec)}</div></div>
+                    <div class="bg-white p-2.5 rounded-lg border border-slate-200"><span class="text-[10px] text-slate-500">Variação Receitas</span><div class="font-bold text-sm">${escH(varRec)}</div></div>
+                </div>
+            ` : '';
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="utf-8">
+                    <title>Detalhamento - ${escH(nomeCentro)} (${escH(comp)})</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                    <style>
+                        body { font-family: 'Open Sans', system-ui, -apple-system, sans-serif; font-size: 10px; }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: #fff !important; padding: 0 !important; }
+                            @page { margin: 0.8cm; size: A4 landscape; }
+                            .no-print { display: none !important; }
+                            tr { break-inside: avoid; page-break-inside: avoid; }
+                            thead { display: table-header-group; }
+                        }
+                    </style>
+                </head>
+                <body class="p-5 bg-slate-50 text-slate-900">
+                    <div class="max-w-full mx-auto space-y-4">
+                        <div class="no-print flex items-center justify-between bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow">
+                            <span class="text-xs font-semibold">Pré-visualização para PDF (Paisagem A4)</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer">
+                                    <i class="fa-solid fa-print mr-1"></i> Imprimir / Salvar PDF
+                                </button>
+                                <button onclick="window.close()" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold cursor-pointer">Fechar</button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-slate-900 text-white flex justify-between items-center gap-3">
+                            <div>
+                                <div class="text-[10px] font-bold uppercase text-teal-300">Detalhamento por Conta Contábil • ${escH(comp)} • Filtro: ${escH(filtroLabel)}</div>
+                                <h2 class="text-base font-extrabold mt-0.5">${escH(nomeCentro)}</h2>
+                                <p class="text-[11px] text-slate-300">${g ? `Gestor: ${escH(g.nome)} (${escH(g.email)})` : 'Gestor não cadastrado'}</p>
+                            </div>
+                            <div class="text-right text-[10px] text-slate-300">
+                                <div class="font-bold text-white">HMDCC — Gestão de Custos</div>
+                                <div>Gerado em: ${escH(agoraData)}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3 text-xs">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-500 uppercase">Orçado Custos</span><div class="text-base font-extrabold text-slate-800 mt-0.5">${escH(orcTotal)}</div></div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-500 uppercase">Realizado Custos</span><div class="text-base font-extrabold text-slate-800 mt-0.5">${escH(realTotal)}</div></div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-500 uppercase">Variação Custos</span><div class="${escH(varTotalCls)}">${escH(varTotal)}</div></div>
+                        </div>
+
+                        ${blocoRecHtml}
+
+                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <table class="w-full text-left text-[10px] border-collapse">
+                                <thead class="bg-slate-800 text-white font-bold uppercase text-[9px]">
+                                    <tr>
+                                        <th class="p-2">Conta Contábil</th>
+                                        <th class="p-2">Descrição / Natureza</th>
+                                        <th class="p-2 text-right">Orçado (R$)</th>
+                                        <th class="p-2 text-right">Realizado (R$)</th>
+                                        <th class="p-2 text-right">Variação (R$)</th>
+                                        <th class="p-2 text-center">Consumo (%)</th>
+                                        <th class="p-2">Justificativa</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${linhasHtml}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <script>
+                        window.addEventListener('load', function () {
+                            setTimeout(function () { window.print(); }, 450);
+                        });
+                    <\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
         };
 
         // --- MÓDULO 3: ANÁLISE ANUAL ---
@@ -9137,10 +9738,10 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 iconeStatus = 'fa-solid fa-bell';
                 proximoPasso = 'Se não realizar ➔ 2º Marco (E-mail Não Realização)';
             } else {
-                codigoMarco = 'MARCO_1';
-                labelStatus = '1º Marco: Aguardando Lembrete (7º d.u.)';
-                corBadge = 'bg-amber-50 text-amber-800 border-amber-300';
-                iconeStatus = 'fa-regular fa-bell';
+                codigoMarco = 'PENDENTE_ENVIO';
+                labelStatus = 'Pendente de 1º Envio (7º d.u.)';
+                corBadge = 'bg-slate-100 text-slate-700 border-slate-300';
+                iconeStatus = 'fa-solid fa-hourglass-half';
                 proximoPasso = 'Disparar 1º Marco (E-mail de Lembrete do 7º dia útil)';
             }
 
@@ -9377,6 +9978,145 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             return resultado.sort((a, b) => (b.variacao || 0) - (a.variacao || 0));
         }
 
+        function obterCentrosPendentesPrimeiroEnvioAuditoria(compAlvo) {
+            const comp = compAlvo || competenciaAtual || '';
+            if (!comp) return [];
+            const partesComp = comp.split('/');
+            const mesComp = partesComp[0] || '';
+            const anoComp = partesComp[1] || '2026';
+
+            const ativosComEnvio = new Set(obterHistoricoEnviosPorMesAnalise(comp).map(h => normC(h.centro)));
+            const histSalvo = lsGet('hmdcc_historico_envios_detalhado', []).filter(h => h && h.competencia === comp);
+            const concluidosManual = new Set(histSalvo.filter(h => h.analiseRealizada).map(h => normC(h.centro)));
+            const centrosDoMes = obterResumoCentrosDoMesAnalise(comp);
+
+            return centrosDoMes
+                .filter(c => {
+                    const cNorm = normC(c.centro);
+                    if (c.statusMes !== 'NAO_CONFORME') return false;
+                    if (verificarSeCentroJaJustificou(comp, c.centro)) return false;
+                    if (ativosComEnvio.has(cNorm) || concluidosManual.has(cNorm)) return false;
+                    return true;
+                })
+                .map(c => {
+                    const cNorm = normC(c.centro);
+                    const g = getGestor(c.centro);
+                    return {
+                        id: `envio_${comp.replace('/', '')}_${cNorm.replace(/[^a-z0-9]/gi, '_')}`,
+                        dataHora: null,
+                        ano: anoComp,
+                        mes: mesComp,
+                        competencia: comp,
+                        centro: c.centro,
+                        orcado: c.orcado || 0,
+                        realizado: c.realizado || 0,
+                        variacao: c.variacao || 0,
+                        qtdEstourosSemJust: c.qtdEstourosSemJust || 0,
+                        statusMes: 'NAO_CONFORME',
+                        gestorNome: g ? g.nome : 'Não cadastrado',
+                        gestorEmail: g ? g.email : '',
+                        usuarioRemetente: 'Sistema HMDCC',
+                        marco1Data: null,
+                        marco2Data: null,
+                        marco3Data: null,
+                        marco3Protocolo: '',
+                        analiseRealizada: false,
+                        dataAnaliseRealizada: null,
+                        semEnvioAinda: true
+                    };
+                })
+                .sort((a, b) => (b.variacao || 0) - (a.variacao || 0));
+        }
+
+        function obterCentrosConcluidosDoMesAuditoria(compAlvo) {
+            const comp = compAlvo || competenciaAtual || '';
+            if (!comp) return [];
+            const partesComp = comp.split('/');
+            const mesComp = partesComp[0] || '';
+            const anoComp = partesComp[1] || '2026';
+
+            const excluidos = new Set(lsGet(LS_ENVIOS_EXCLUIDOS, []));
+            const histSalvo = lsGet('hmdcc_historico_envios_detalhado', []).filter(h => h && h.competencia === comp);
+            const mapaSalvos = new Map();
+            histSalvo.forEach(h => {
+                mapaSalvos.set(normC(h.centro), h);
+            });
+
+            const centrosDoMes = obterResumoCentrosDoMesAnalise(comp);
+            const mapaResumo = new Map();
+            centrosDoMes.forEach(cm => {
+                mapaResumo.set(normC(cm.centro), cm);
+            });
+
+            const mapaConcluidos = new Map();
+
+            centrosDoMes.forEach(c => {
+                const jaJustPlanilha = c.statusMes === 'NAO_CONFORME_JUSTIFICADO' || verificarSeCentroJaJustificou(comp, c.centro);
+                if (!jaJustPlanilha) return;
+                const cNorm = normC(c.centro);
+                const salvo = mapaSalvos.get(cNorm);
+                const g = getGestor(c.centro);
+                mapaConcluidos.set(cNorm, {
+                    id: (salvo && salvo.id) || `envio_${comp.replace('/', '')}_${cNorm.replace(/[^a-z0-9]/gi, '_')}`,
+                    dataHora: salvo ? salvo.dataHora : null,
+                    ano: (salvo && salvo.ano) || anoComp,
+                    mes: (salvo && salvo.mes) || mesComp,
+                    competencia: comp,
+                    centro: c.centro,
+                    orcado: c.orcado || 0,
+                    realizado: c.realizado || 0,
+                    variacao: c.variacao || 0,
+                    qtdEstourosSemJust: 0,
+                    statusMes: 'NAO_CONFORME_JUSTIFICADO',
+                    gestorNome: (salvo && salvo.gestorNome && salvo.gestorNome !== 'Não informado' && salvo.gestorNome !== 'Cadastrado no Sistema') ? salvo.gestorNome : (g ? g.nome : 'Não cadastrado'),
+                    gestorEmail: (salvo && salvo.gestorEmail) || (g ? g.email : ''),
+                    usuarioRemetente: (salvo && salvo.usuarioRemetente) || 'Sistema HMDCC',
+                    marco1Data: salvo ? (salvo.marco1Data || salvo.dataHora || null) : null,
+                    marco2Data: salvo ? (salvo.marco2Data || null) : null,
+                    marco3Data: salvo ? (salvo.marco3Data || null) : null,
+                    marco3Protocolo: salvo ? (salvo.marco3Protocolo || '') : '',
+                    analiseRealizada: true,
+                    dataAnaliseRealizada: salvo ? (salvo.dataAnaliseRealizada || null) : null,
+                    marcadoManual: Boolean(salvo && salvo.analiseRealizada && !jaJustPlanilha)
+                });
+            });
+
+            histSalvo.forEach(salvo => {
+                if (!salvo || !salvo.analiseRealizada) return;
+                const cNorm = normC(salvo.centro);
+                const ch = `${comp}|${cNorm}`;
+                if (excluidos.has(ch) || excluidos.has(salvo.id)) return;
+                if (mapaConcluidos.has(cNorm)) return;
+                const cm = mapaResumo.get(cNorm);
+                const g = getGestor(salvo.centro);
+                mapaConcluidos.set(cNorm, {
+                    id: salvo.id,
+                    dataHora: salvo.dataHora,
+                    ano: salvo.ano || anoComp,
+                    mes: salvo.mes || mesComp,
+                    competencia: comp,
+                    centro: salvo.centro,
+                    orcado: cm ? cm.orcado : (salvo.orcado || 0),
+                    realizado: cm ? cm.realizado : (salvo.realizado || 0),
+                    variacao: cm ? cm.variacao : (salvo.variacao || 0),
+                    qtdEstourosSemJust: 0,
+                    statusMes: 'NAO_CONFORME_JUSTIFICADO',
+                    gestorNome: (salvo.gestorNome && salvo.gestorNome !== 'Não informado' && salvo.gestorNome !== 'Cadastrado no Sistema') ? salvo.gestorNome : (g ? g.nome : 'Não cadastrado'),
+                    gestorEmail: salvo.gestorEmail || (g ? g.email : ''),
+                    usuarioRemetente: salvo.usuarioRemetente || 'Sistema HMDCC',
+                    marco1Data: salvo.marco1Data || salvo.dataHora || null,
+                    marco2Data: salvo.marco2Data || null,
+                    marco3Data: salvo.marco3Data || null,
+                    marco3Protocolo: salvo.marco3Protocolo || '',
+                    analiseRealizada: true,
+                    dataAnaliseRealizada: salvo.dataAnaliseRealizada || null,
+                    marcadoManual: true
+                });
+            });
+
+            return Array.from(mapaConcluidos.values()).sort((a, b) => (b.variacao || 0) - (a.variacao || 0));
+        }
+
         function obterHistoricoEnviosUnificado() {
             const selComp = document.getElementById('auditFiltroComp');
             const compEscolhida = (selComp && selComp.value && selComp.value !== 'TODAS') ? selComp.value : (competenciaAtual || '');
@@ -9517,16 +10257,37 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             renderizarTabelaAuditoriaEnvios();
         };
 
+        window.copiarWhatsAppDaAuditoria = function (centro, comp, numeroMarco, protocoloRnc) {
+            const g = getGestor(centro) || { nome: 'Gestor(a)' };
+            const { assunto, corpo } = montarEmailGestor(centro, g, numeroMarco || 1, protocoloRnc || '', comp);
+            const textoZap = `*${assunto}*\n\n${corpo}`;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textoZap).then(() => {
+                    mostrarAviso(`📲 <strong>Mensagem do ${numeroMarco || 1}º Marco copiada!</strong> Cole no WhatsApp ou Teams de <strong>${escH(g.nome)}</strong>.`, 4500);
+                }).catch(() => {
+                    alert('Não foi possível copiar automaticamente.');
+                });
+            } else {
+                alert('Área de transferência indisponível neste navegador.');
+            }
+        };
+
         window.acionarMarcoAuditoriaEnvio = async function (idRegistro, numeroMarco, dispararEmailGmail) {
-            const listaMes = obterHistoricoEnviosUnificado();
-            const item = listaMes.find(h => h.id === idRegistro);
+            const selCompEl = document.getElementById('auditFiltroComp');
+            const compAtual = (selCompEl && selCompEl.value) ? selCompEl.value : (competenciaAtual || '');
+            const candidatos = [
+                ...obterHistoricoEnviosUnificado(),
+                ...obterCentrosPendentesPrimeiroEnvioAuditoria(compAtual),
+                ...obterCentrosConcluidosDoMesAuditoria(compAtual)
+            ];
+            const item = candidatos.find(h => h.id === idRegistro);
             if (!item) return;
 
             const agoraIso = new Date().toISOString();
             const g = getGestor(item.centro);
             const emailDest = item.gestorEmail || (g ? g.email : '');
             const nomeDest = (item.gestorNome && item.gestorNome !== 'Não cadastrado') ? item.gestorNome : (g ? g.nome : 'Gestor(a)');
-            const comp = item.competencia || competenciaAtual || '';
+            const comp = item.competencia || compAtual || '';
 
             if (dispararEmailGmail && !emailDest) {
                 if (confirm(`O centro "${item.centro}" ainda não possui e-mail de gestor cadastrado.\n\nDeseja abrir o Cadastro de Gestores agora para cadastrar o e-mail?`)) {
@@ -9542,20 +10303,11 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             if (numeroMarco === 1) {
                 item.marco1Data = agoraIso;
                 if (!item.dataHora) item.dataHora = agoraIso;
-                assunto = `[1º MARCO - LEMBRETE 7º DIA ÚTIL] Análise Orçamentária Pendente - ${item.centro} (${comp})`;
-                corpo = `Prezado(a) ${nomeDest},\n\n` +
-                    `Lembramos que o prazo regulamentar de 6 (seis) dias úteis para a realização da Análise Orçamentária e registro das justificativas do centro de custo "${item.centro}" (Competência ${comp}) encerrou-se.\n\n` +
-                    `Hoje atingimos o 7º dia útil (1º Marco Importante de Lembrete) sem identificarmos a conclusão da análise no sistema.\n\n` +
-                    `Solicitamos a gentileza de acessar o Painel de Gestão de Custos HMDCC e registrar a análise imediatamente, evitando o avanço para o 2º Marco (Notificação de Não Realização).\n\n` +
-                    `Atenciosamente,\nGestão de Custos e Orçamento - HMDCC`;
+                ({ assunto, corpo } = montarEmailGestor(item.centro, { nome: nomeDest, email: emailDest }, 1, '', comp));
             } else if (numeroMarco === 2) {
                 if (!item.marco1Data) item.marco1Data = item.dataHora || agoraIso;
                 item.marco2Data = agoraIso;
-                assunto = `[2º MARCO IMPORTANTE - NÃO REALIZAÇÃO] Pendência Crítica de Análise Orçamentária - ${item.centro} (${comp})`;
-                corpo = `Prezado(a) ${nomeDest},\n\n` +
-                    `Após o prazo inicial de 6 dias úteis e o envio do 1º Marco de Lembrete no 7º dia útil, constatamos a NÃO REALIZAÇÃO da Análise Orçamentária referente ao centro de custo "${item.centro}" (Competência ${comp}).\n\n` +
-                    `Este e-mail constitui o 2º Marco Importante (Registro Formal de Não Realização). Caso não haja resposta ou regularização imediata no sistema, o processo seguirá obrigatoriamente para o 3º Marco Importante: ABERTURA DE NÃO CONFORMIDADE formal.\n\n` +
-                    `Atenciosamente,\nGestão de Custos e Orçamento - HMDCC`;
+                ({ assunto, corpo } = montarEmailGestor(item.centro, { nome: nomeDest, email: emailDest }, 2, '', comp));
             } else if (numeroMarco === 3) {
                 const obsNC = prompt(
                     `🚨 ABERTURA DE NÃO CONFORMIDADE (3º MARCO IMPORTANTE)\n\nCentro de Custo: ${item.centro} (${comp})\nGestor: ${nomeDest}\n\nInforme o número do protocolo/RNC ou observação da Não Conformidade (ou deixe em branco para gerar protocolo automático):`,
@@ -9566,14 +10318,20 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (!item.marco2Data) item.marco2Data = agoraIso;
                 item.marco3Data = agoraIso;
                 item.marco3Protocolo = obsNC.trim() || `RNC-${comp.replace('/', '')}`;
-                assunto = `[3º MARCO - ABERTURA DE NÃO CONFORMIDADE ${item.marco3Protocolo}] Ausência de Análise Orçamentária - ${item.centro} (${comp})`;
-                corpo = `Prezado(a) ${nomeDest},\n\n` +
-                    `Tendo em vista o esgotamento do prazo de 6 dias úteis, o envio do Lembrete no 7º dia útil (1º Marco), o envio da Notificação de Não Realização (2º Marco) e a ausência de resposta/justificativa no sistema, comunicamos a ABERTURA DE NÃO CONFORMIDADE (${item.marco3Protocolo}) referente ao centro de custo "${item.centro}" na competência ${comp}.\n\n` +
-                    `Solicitamos providências imediatas junto à Gestão Orçamentária.\n\n` +
-                    `Atenciosamente,\nGestão de Custos e Orçamento - HMDCC`;
+                ({ assunto, corpo } = montarEmailGestor(item.centro, { nome: nomeDest, email: emailDest }, 3, item.marco3Protocolo, comp));
             } else if (numeroMarco === 4) {
                 item.analiseRealizada = !item.analiseRealizada;
                 item.dataAnaliseRealizada = item.analiseRealizada ? agoraIso : null;
+            }
+
+            if (numeroMarco === 1 || numeroMarco === 2 || numeroMarco === 3) {
+                const excluidos = new Set(lsGet(LS_ENVIOS_EXCLUIDOS, []));
+                excluidos.delete(`${comp}|${normC(item.centro)}`);
+                excluidos.delete(item.id);
+                lsSet(LS_ENVIOS_EXCLUIDOS, Array.from(excluidos));
+
+                notificacoes[`${comp}|${item.centro}`] = agoraIso;
+                lsSet(LS_NOTIF, notificacoes);
             }
 
             // Persiste no histórico detalhado salvo e no Firestore
@@ -9745,6 +10503,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             const tbody = document.getElementById('auditTabelaCorpo');
 
             if (!fComp) {
+                setCnt('auditCountPendenteEnvio', 0);
                 setCnt('auditCountMarco1', 0);
                 setCnt('auditCountMarco2', 0);
                 setCnt('auditCountMarco3', 0);
@@ -9765,8 +10524,9 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 return;
             }
 
-            // Lista apenas os centros com e-mail EFETIVAMENTE ENVIADO e que ainda NÃO foram concluídos pelo gestor
-            const dadosMes = obterHistoricoEnviosPorMesAnalise(fComp);
+            const dadosPendentesEnvio = obterCentrosPendentesPrimeiroEnvioAuditoria(fComp);
+            const dadosConcluidos = obterCentrosConcluidosDoMesAuditoria(fComp);
+            const dadosNotificados = obterHistoricoEnviosPorMesAnalise(fComp);
 
             // Contagem dos marcos baseada nos envios reais existentes
             const histCompletoNuvem = lsGet('hmdcc_historico_envios_detalhado', []).filter(h => h && h.competencia === fComp);
@@ -9777,18 +10537,22 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (h.marco3Data) cMarco3Enviados++;
             });
 
-            // Concluídos / Justificados no Mês
-            const centrosDoMes = obterResumoCentrosDoMesAnalise(fComp);
-            let cConcluido = centrosDoMes.filter(c => c.statusMes === 'NAO_CONFORME_JUSTIFICADO' || verificarSeCentroJaJustificou(fComp, c.centro)).length;
-
+            setCnt('auditCountPendenteEnvio', dadosPendentesEnvio.length);
             setCnt('auditCountMarco1', cMarco1Enviados);
             setCnt('auditCountMarco2', cMarco2Enviados);
             setCnt('auditCountMarco3', cMarco3Enviados);
-            setCnt('auditCountConcluido', cConcluido);
+            setCnt('auditCountConcluido', dadosConcluidos.length);
 
             const subM1 = document.getElementById('auditSubMarco1');
             if (subM1) {
                 subM1.textContent = `${cMarco1Enviados} e-mail(s) de lembrete enviado(s)`;
+            }
+
+            let dadosMes = dadosNotificados;
+            if (fMarco === 'CONCLUIDO') {
+                dadosMes = dadosConcluidos;
+            } else if (fMarco === 'PENDENTE_ENVIO') {
+                dadosMes = dadosPendentesEnvio;
             }
 
             const baseFiltrada = dadosMes.filter(item => {
@@ -9804,7 +10568,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 return { item, diag };
             });
 
-            ['MARCO_1', 'MARCO_2', 'MARCO_3', 'CONCLUIDO'].forEach(cod => {
+            ['PENDENTE_ENVIO', 'MARCO_1', 'MARCO_2', 'MARCO_3', 'CONCLUIDO'].forEach(cod => {
                 const btn = document.getElementById('cardAuditMarco_' + cod);
                 if (btn) {
                     if (fMarco === cod) {
@@ -9822,12 +10586,21 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             if (!tbody) return;
 
             if (exibidos.length === 0) {
+                let msgTitulo = 'Nenhum envio registrado pendente de realização';
+                let msgDesc = 'Os centros de custo só aparecem aqui após o e-mail ser enviado ao gestor. Clique no card "Pendentes 1º Envio" para cobrar os centros com estouro.';
+                if (fMarco === 'CONCLUIDO') {
+                    msgTitulo = 'Nenhum centro com análise concluída/justificada neste mês';
+                    msgDesc = 'Assim que os gestores registrarem as justificativas ou forem marcados como concluídos, aparecerão aqui.';
+                } else if (fMarco === 'PENDENTE_ENVIO') {
+                    msgTitulo = 'Nenhum centro pendente de 1º envio neste mês';
+                    msgDesc = 'Todos os centros com estouro no mês já justificaram ou já receberam cobrança.';
+                }
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="4" class="p-10 text-center text-slate-400">
                             <i class="fa-regular fa-envelope text-3xl mb-2 text-slate-300 block"></i>
-                            <div class="font-bold text-slate-700 text-sm">Nenhum envio registrado pendente de realização</div>
-                            <div class="text-xs text-slate-400 mt-1">Os centros de custo só aparecem aqui após o e-mail ser enviado ao gestor. Caso o gestor já tenha realizado ou não precise, ele não é listado.</div>
+                            <div class="font-bold text-slate-700 text-sm">${msgTitulo}</div>
+                            <div class="text-xs text-slate-400 mt-1">${msgDesc}</div>
                         </td>
                     </tr>
                 `;
@@ -9839,7 +10612,6 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 const dtM2 = item.marco2Data ? new Date(item.marco2Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
                 const dtM3 = item.marco3Data ? new Date(item.marco3Data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
 
-                // REGRA SOLICITADA: "quando o email for enviado, os cards do referido processo tenham a mesma cor VERDE"
                 // Se o e-mail foi enviado naquele marco, o card fica verde (bg-emerald-100 text-emerald-900 border-emerald-400)
                 const m1Class = dtM1
                     ? 'bg-emerald-100 border-emerald-400 text-emerald-900 shadow-2xs font-medium'
@@ -9856,6 +10628,75 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 const desvioStr = (typeof item.variacao === 'number' && item.variacao > 0)
                     ? `<div class="text-[10px] font-bold text-rose-600 mt-1"><i class="fa-solid fa-arrow-trend-up mr-1"></i>Desvio no mês: +${formatMoeda(item.variacao)}</div>`
                     : '';
+
+                const marcoZap = item.marco3Data ? 3 : (item.marco2Data ? 2 : 1);
+
+                const acoesColuna4 = diag.analiseConcluida
+                    ? `
+                        <div class="flex flex-col gap-1.5 items-stretch min-w-[195px]">
+                            <button type="button" onclick="fecharModalAuditoriaEnvios(); abrirModalDetalhes('${escH(item.centro)}', true)"
+                                class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i> Ver Detalhes / Justificativa
+                            </button>
+                            ${item.marcadoManual ? `
+                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 4, false)"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-rotate-left"></i> Reabrir Pendência
+                                </button>
+                            ` : ''}
+                        </div>
+                    `
+                    : `
+                        <div class="flex flex-col gap-1.5 items-stretch min-w-[195px]">
+                            <!-- Botão 1º Marco -->
+                            <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 1, true)"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 cursor-pointer ${dtM1 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-2xs'}">
+                                <span><i class="fa-solid fa-bell mr-1"></i>1º Marco: Lembrete (7º d.u.)</span>
+                                <i class="fa-solid ${dtM1 ? 'fa-check text-emerald-600' : 'fa-paper-plane'} text-[9px]"></i>
+                            </button>
+
+                            <!-- Botão 2º Marco -->
+                            <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 2, true)"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 cursor-pointer ${dtM2 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-700 shadow-2xs'}">
+                                <span><i class="fa-solid fa-envelope-open-text mr-1"></i>2º Marco: Não Realização</span>
+                                <i class="fa-solid ${dtM2 ? 'fa-check text-emerald-600' : 'fa-paper-plane'} text-[9px]"></i>
+                            </button>
+
+                            <!-- Botão 3º Marco -->
+                            <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 3, true)"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 cursor-pointer ${dtM3 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs'}">
+                                <span><i class="fa-solid fa-file-circle-exclamation mr-1"></i>3º Marco: Não Conformidade</span>
+                                <i class="fa-solid ${dtM3 ? 'fa-check text-emerald-600' : 'fa-gavel'} text-[9px]"></i>
+                            </button>
+
+                            <!-- Copiar WhatsApp -->
+                            <button type="button" onclick="copiarWhatsAppDaAuditoria('${escH(item.centro)}', '${escH(item.competencia)}', ${marcoZap}, '${escH(item.marco3Protocolo || '')}')"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-300 bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-brands fa-whatsapp text-xs"></i> Copiar p/ WhatsApp (${marcoZap}º Marco)
+                            </button>
+
+                            <!-- Linha inferior: Concluir e Excluir / Ver Detalhes -->
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 4, false)"
+                                    class="flex-1 px-2 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border-slate-300 cursor-pointer">
+                                    <i class="fa-solid fa-check"></i> Marcar Realizada
+                                </button>
+                                ${item.semEnvioAinda ? `
+                                    <button type="button" onclick="fecharModalAuditoriaEnvios(); abrirModalDetalhes('${escH(item.centro)}', true)"
+                                        title="Abrir detalhamento do centro de custo"
+                                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                        <i class="fa-solid fa-eye"></i> Ver
+                                    </button>
+                                ` : `
+                                    <button type="button" onclick="excluirRegistroAuditoriaEnvio('${escH(item.id)}', '${escH(item.centro)}', '${escH(item.competencia)}')"
+                                        title="Excluir este centro da régua de cobrança deste mês"
+                                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-rose-200 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                        <i class="fa-solid fa-trash-can"></i> Excluir
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    `;
 
                 return `
                     <tr class="hover:bg-slate-50/90 transition-colors align-top">
@@ -9922,8 +10763,8 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
                         <!-- Coluna 3: Situação Atual no Mês -->
                         <td class="p-3 text-center whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${dtM3 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : (dtM2 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300')}">
-                                <i class="fa-solid fa-paper-plane text-emerald-600"></i> ${escH(diag.labelStatus)}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${diag.corBadge}">
+                                <i class="${diag.iconeStatus}"></i> ${escH(diag.labelStatus)}
                             </span>
                             <div class="text-[10px] text-slate-500 font-medium mt-1 max-w-[190px] mx-auto whitespace-normal leading-tight">
                                 ${escH(diag.proximoPasso)}
@@ -9932,41 +10773,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
                         <!-- Coluna 4: Botões de Ação Rápida para Avançar Marcos e Excluir -->
                         <td class="p-3 text-center whitespace-nowrap">
-                            <div class="flex flex-col gap-1.5 items-stretch min-w-[195px]">
-                                <!-- Botão 1º Marco -->
-                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 1, true)"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM1 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-2xs'}">
-                                    <span><i class="fa-solid fa-bell mr-1"></i>1º Marco: Lembrete (7º d.u.)</span>
-                                    <i class="fa-solid ${dtM1 ? 'fa-check text-emerald-600' : 'fa-paper-plane'} text-[9px]"></i>
-                                </button>
-
-                                <!-- Botão 2º Marco -->
-                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 2, true)"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM2 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-700 shadow-2xs'}">
-                                    <span><i class="fa-solid fa-envelope-open-text mr-1"></i>2º Marco: Não Realização</span>
-                                    <i class="fa-solid ${dtM2 ? 'fa-check text-emerald-600' : 'fa-paper-plane'} text-[9px]"></i>
-                                </button>
-
-                                <!-- Botão 3º Marco -->
-                                <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 3, true)"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-between gap-1.5 ${dtM3 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-2xs'}">
-                                    <span><i class="fa-solid fa-file-circle-exclamation mr-1"></i>3º Marco: Não Conformidade</span>
-                                    <i class="fa-solid ${dtM3 ? 'fa-check text-emerald-600' : 'fa-gavel'} text-[9px]"></i>
-                                </button>
-
-                                <!-- Linha inferior: Concluir e Excluir -->
-                                <div class="flex items-center gap-1.5">
-                                    <button type="button" onclick="acionarMarcoAuditoriaEnvio('${escH(item.id)}', 4, false)"
-                                        class="flex-1 px-2 py-1 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border-slate-300">
-                                        <i class="fa-solid fa-check"></i> Marcar Realizada
-                                    </button>
-                                    <button type="button" onclick="excluirRegistroAuditoriaEnvio('${escH(item.id)}', '${escH(item.centro)}', '${escH(item.competencia)}')"
-                                        title="Excluir este centro da régua de cobrança deste mês"
-                                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-rose-200 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white transition-all flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-trash-can"></i> Excluir
-                                    </button>
-                                </div>
-                            </div>
+                            ${acoesColuna4}
                         </td>
                     </tr>
                 `;
@@ -10571,18 +11378,58 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             }
         };
 
-        function montarEmailGestor(centro, g, opcaoMarco, protocoloRnc) {
-            const it = (window.listaAtualJustificativa || []).find(i => i.centro === centro);
-            const contas = rawExcelData.filter(r =>
-                normC(r.centro) === normC(centro) && contasSelecionadasJust.has(r.conta) &&
-                !(r.conta && r.conta.startsWith('3')) && (r.realizado - r.orcado) > 0.01 &&
-                !(r.justificativa && r.justificativa.trim() && r.justificativa.trim() !== '-')
-            ).sort((a, b) => (b.realizado - b.orcado) - (a.realizado - a.orcado));
+        function montarEmailGestor(centro, g, opcaoMarco, protocoloRnc, compOverride) {
+            const comp = (compOverride && compOverride !== 'Vigente')
+                ? compOverride
+                : ((typeof competenciaAtual !== 'undefined' && competenciaAtual && competenciaAtual !== 'Vigente')
+                    ? competenciaAtual
+                    : (document.getElementById('auditFiltroComp')?.value || document.getElementById('seletorCompetenciaHeader')?.value || '09/2026'));
+
+            let basePlanilha = (typeof obterDadosPlanilhaPorCompetencia === 'function')
+                ? obterDadosPlanilhaPorCompetencia(comp)
+                : [];
+            if (!Array.isArray(basePlanilha) || basePlanilha.length === 0) {
+                basePlanilha = Array.isArray(rawExcelData) ? rawExcelData : [];
+            }
+
+            const temFiltroContas = typeof contasSelecionadasJust !== 'undefined' && contasSelecionadasJust.size > 0;
+            const linhasCentro = basePlanilha.filter(r =>
+                normC(r.centro) === normC(centro) &&
+                (!temFiltroContas || contasSelecionadasJust.has(r.conta)) &&
+                !(r.conta && String(r.conta).startsWith('3'))
+            );
+
+            let orcadoCalc = 0;
+            let realizadoCalc = 0;
+            linhasCentro.forEach(r => {
+                orcadoCalc += (Number(r.orcado) || 0);
+                realizadoCalc += (Number(r.realizado) || 0);
+            });
+            const variacaoCalc = realizadoCalc - orcadoCalc;
+
+            const it = (!compOverride || compOverride === competenciaAtual)
+                ? (window.listaAtualJustificativa || []).find(i => normC(i.centro) === normC(centro))
+                : null;
+
+            const contas = linhasCentro.filter(r => {
+                const diff = (Number(r.realizado) || 0) - (Number(r.orcado) || 0);
+                if (diff <= 0.01) return false;
+                let txtJust = (r.justificativa && String(r.justificativa).trim() && String(r.justificativa).trim() !== '-')
+                    ? String(r.justificativa).trim()
+                    : '';
+                if (!txtJust && typeof getJustificativa === 'function') {
+                    const jSalva = getJustificativa(r.centro, r.conta, comp);
+                    if (jSalva && String(jSalva).trim() && String(jSalva).trim() !== '-') {
+                        txtJust = String(jSalva).trim();
+                    }
+                }
+                return !txtJust;
+            }).sort((a, b) => ((Number(b.realizado) || 0) - (Number(b.orcado) || 0)) - ((Number(a.realizado) || 0) - (Number(a.orcado) || 0)));
 
             let listaContasTxt = "";
             let usadas = 0;
             for (const c of contas) {
-                const linha = `- ${c.conta} ${c.descricao}: ${formatMoeda(c.realizado - c.orcado)} acima\n`;
+                const linha = `- ${c.conta} ${c.descricao}: ${formatMoeda((Number(c.realizado) || 0) - (Number(c.orcado) || 0))} acima\n`;
                 if (listaContasTxt.length + linha.length > 950) break;
                 listaContasTxt += linha;
                 usadas++;
@@ -10592,10 +11439,13 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             }
             const textoContasFinal = listaContasTxt.trimEnd() || '(nenhuma conta listada)';
 
-            const comp = (typeof competenciaAtual !== 'undefined' && competenciaAtual && competenciaAtual !== 'Vigente') ? competenciaAtual : (document.getElementById('selMesAtivo') ? document.getElementById('selMesAtivo').value : '09/2026');
-            const orcadoStr = it ? formatMoeda(it.orcado) : '-';
-            const realizadoStr = it ? formatMoeda(it.realizado) : '-';
-            const variacaoStr = it ? formatMoeda(it.variacao) : '-';
+            const orcadoVal = it ? it.orcado : (linhasCentro.length > 0 ? orcadoCalc : null);
+            const realizadoVal = it ? it.realizado : (linhasCentro.length > 0 ? realizadoCalc : null);
+            const variacaoVal = it ? it.variacao : (linhasCentro.length > 0 ? variacaoCalc : null);
+
+            const orcadoStr = orcadoVal !== null ? formatMoeda(orcadoVal) : '-';
+            const realizadoStr = realizadoVal !== null ? formatMoeda(realizadoVal) : '-';
+            const variacaoStr = variacaoVal !== null ? formatMoeda(variacaoVal) : '-';
             const nomeGestor = g && g.nome ? g.nome : 'Gestor(a)';
             const codRnc = protocoloRnc || `RNC-${String(comp).replace(/\//g, '')}`;
 
@@ -14543,6 +15393,671 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 </html>
             `);
             win.document.close();
+        };
+
+        // =========================================================
+        // MÓDULO 5: CENTROS DE RESULTADO (AGRUPAMENTO DE CENTROS)
+        // =========================================================
+        const LS_CENTROS_RESULTADO = 'hmdcc_centros_resultado_grupos';
+        let visaoCentrosResultado = 'GRUPOS'; // 'GRUPOS' ou 'GESTORES'
+        let _crCacheItensAtuais = [];
+
+        function obterGruposCentrosResultado() {
+            const lista = lsGet(LS_CENTROS_RESULTADO, []);
+            return Array.isArray(lista) ? lista : [];
+        }
+
+        function salvarGruposCentrosResultado(lista) {
+            lsSet(LS_CENTROS_RESULTADO, Array.isArray(lista) ? lista : []);
+        }
+
+        function obterTodosCentrosDisponiveisParaCR() {
+            const setC = new Set();
+            if (Array.isArray(centrosDisponiveis) && centrosDisponiveis.length > 0) {
+                centrosDisponiveis.forEach(c => { if (c) setC.add(c); });
+            }
+            if (Array.isArray(rawExcelData) && rawExcelData.length > 0) {
+                rawExcelData.forEach(r => { if (r && r.centro) setC.add(r.centro); });
+            }
+            try {
+                const repo = obterRepositorioCompetencias();
+                Object.values(repo).forEach(comp => {
+                    if (comp && Array.isArray(comp.data)) {
+                        comp.data.forEach(r => { if (r && r.centro) setC.add(r.centro); });
+                    }
+                });
+            } catch (e) { }
+            Object.keys(gestores || {}).forEach(c => { if (c) setC.add(c); });
+            return Array.from(setC).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        }
+
+        function obterMapaValoresPorCentroMesAtivo() {
+            const mapa = new Map();
+            const linhas = Array.isArray(rawExcelData) ? rawExcelData : [];
+            linhas.forEach(r => {
+                if (!r || !r.centro) return;
+                const isRec = r.conta && String(r.conta).startsWith('3');
+                if (isRec) return;
+                const cNorm = normC(r.centro);
+                if (!mapa.has(cNorm)) {
+                    mapa.set(cNorm, { centro: r.centro, orcado: 0, realizado: 0 });
+                }
+                const obj = mapa.get(cNorm);
+                obj.orcado += (Number(r.orcado) || 0);
+                obj.realizado += (Number(r.realizado) || 0);
+            });
+            return mapa;
+        }
+
+        window.alternarVisaoCentrosResultado = function (novaVisao) {
+            visaoCentrosResultado = novaVisao === 'GESTORES' ? 'GESTORES' : 'GRUPOS';
+            const btnG = document.getElementById('btnVisaoCR_GRUPOS');
+            const btnGes = document.getElementById('btnVisaoCR_GESTORES');
+            const clsAtivo = 'px-4 py-2 rounded-lg text-xs font-bold bg-[#05604e] text-white shadow-xs transition-all flex items-center gap-2 cursor-pointer';
+            const clsInativo = 'px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-white transition-all flex items-center gap-2 cursor-pointer';
+            if (btnG) btnG.className = visaoCentrosResultado === 'GRUPOS' ? clsAtivo : clsInativo;
+            if (btnGes) btnGes.className = visaoCentrosResultado === 'GESTORES' ? clsAtivo : clsInativo;
+            renderizarCentrosResultado();
+        };
+
+        window.renderizarCentrosResultado = function () {
+            const badgeMes = document.getElementById('badgeMesCentrosResultado');
+            const temMesAtivo = Boolean(competenciaAtual && Array.isArray(rawExcelData) && rawExcelData.length > 0);
+            if (badgeMes) {
+                badgeMes.innerHTML = temMesAtivo
+                    ? `<i class="fa-solid fa-calendar-day"></i> Mês Ativo: ${escH(competenciaAtual)}`
+                    : `<i class="fa-solid fa-triangle-exclamation"></i> Selecione um Mês Ativo no topo`;
+            }
+
+            const mapaValores = obterMapaValoresPorCentroMesAtivo();
+            const termo = normalizarTexto(document.getElementById('inputBuscaCentrosResultado')?.value || '');
+            let itensCR = [];
+
+            if (visaoCentrosResultado === 'GRUPOS') {
+                const grupos = obterGruposCentrosResultado();
+                itensCR = grupos.map(grp => {
+                    let orc = 0, real = 0;
+                    const detalhesCentros = (grp.centros || []).map(nomeC => {
+                        const v = mapaValores.get(normC(nomeC));
+                        const o = v ? v.orcado : 0;
+                        const rl = v ? v.realizado : 0;
+                        orc += o;
+                        real += rl;
+                        const gC = getGestor(nomeC);
+                        return {
+                            centro: v ? v.centro : nomeC,
+                            gestor: gC ? gC.nome : '-',
+                            orcado: o,
+                            realizado: rl
+                        };
+                    });
+                    return {
+                        id: grp.id,
+                        tipo: 'GRUPO',
+                        nome: grp.nome,
+                        gestorNome: grp.gestorNome || 'Não informado',
+                        gestorEmail: grp.gestorEmail || '',
+                        orcado: orc,
+                        realizado: real,
+                        variacao: real - orc,
+                        centros: detalhesCentros
+                    };
+                });
+            } else {
+                const mapaGestores = new Map();
+                const centrosParaListar = temMesAtivo
+                    ? Array.from(mapaValores.values()).map(v => v.centro)
+                    : obterTodosCentrosDisponiveisParaCR();
+
+                centrosParaListar.forEach(nomeC => {
+                    const g = getGestor(nomeC);
+                    const chave = g
+                        ? (g.email ? `email:${normC(g.email)}` : `nome:${normC(g.nome)}`)
+                        : '__SEM_GESTOR__';
+                    if (!mapaGestores.has(chave)) {
+                        mapaGestores.set(chave, {
+                            id: chave,
+                            tipo: 'GESTOR',
+                            nome: g ? g.nome : 'Centros sem Gestor Cadastrado',
+                            gestorNome: g ? g.nome : 'Sem vínculo no Cadastro de Gestores',
+                            gestorEmail: g ? (g.email || '') : '',
+                            orcado: 0,
+                            realizado: 0,
+                            variacao: 0,
+                            centros: []
+                        });
+                    }
+                    const grpG = mapaGestores.get(chave);
+                    const v = mapaValores.get(normC(nomeC));
+                    const o = v ? v.orcado : 0;
+                    const rl = v ? v.realizado : 0;
+                    grpG.orcado += o;
+                    grpG.realizado += rl;
+                    grpG.variacao = grpG.realizado - grpG.orcado;
+                    grpG.centros.push({
+                        centro: v ? v.centro : nomeC,
+                        gestor: g ? g.nome : '-',
+                        orcado: o,
+                        realizado: rl
+                    });
+                });
+
+                itensCR = Array.from(mapaGestores.values()).sort((a, b) => {
+                    if (a.id === '__SEM_GESTOR__') return 1;
+                    if (b.id === '__SEM_GESTOR__') return -1;
+                    return b.realizado - a.realizado;
+                });
+            }
+
+            if (termo) {
+                itensCR = itensCR.filter(cr => {
+                    const hay = normalizarTexto(`${cr.nome} ${cr.gestorNome} ${cr.gestorEmail} ${cr.centros.map(c => c.centro).join(' ')}`);
+                    return hay.includes(termo);
+                });
+            }
+
+            _crCacheItensAtuais = itensCR;
+
+            let totOrc = 0, totReal = 0;
+            itensCR.forEach(cr => {
+                totOrc += cr.orcado;
+                totReal += cr.realizado;
+            });
+            const totVar = totReal - totOrc;
+            const totPerc = totOrc > 0 ? (totReal / totOrc) * 100 : 0;
+
+            const elQtd = document.getElementById('crResumoQtd');
+            const elSubQtd = document.getElementById('crResumoSubQtd');
+            const elOrc = document.getElementById('crResumoOrcado');
+            const elReal = document.getElementById('crResumoRealizado');
+            const elVar = document.getElementById('crResumoVariacao');
+            const elPerc = document.getElementById('crResumoPerc');
+
+            if (elQtd) elQtd.textContent = itensCR.length;
+            if (elSubQtd) elSubQtd.textContent = visaoCentrosResultado === 'GRUPOS' ? 'Grupos personalizados' : 'Gestores com centros';
+            if (elOrc) elOrc.textContent = formatMoeda(totOrc);
+            if (elReal) elReal.textContent = formatMoeda(totReal);
+            if (elVar) {
+                elVar.textContent = (totVar > 0 ? '+' : '') + formatMoeda(totVar);
+                elVar.className = `text-2xl font-extrabold mt-1 ${totVar > 0.01 ? 'text-rose-600' : 'text-emerald-600'}`;
+            }
+            if (elPerc) elPerc.textContent = `${totPerc.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% do orçado`;
+
+            const grid = document.getElementById('gridCentrosResultado');
+            if (!grid) return;
+
+            if (itensCR.length === 0) {
+                const msgVazio = visaoCentrosResultado === 'GRUPOS'
+                    ? `<div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-emerald-50 text-[#00ab97] flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-sitemap"></i>
+                            </div>
+                            <div class="font-bold text-slate-800 text-sm">Nenhum Centro de Resultado personalizado criado ainda</div>
+                            <p class="text-xs text-slate-500 max-w-md mx-auto">Crie grupos (ex.: "Hemodiálise", "Diretoria Assistencial") para somar vários centros de custo e acompanhar o resultado consolidado.</p>
+                            <button type="button" onclick="abrirModalGrupoCentroResultado()"
+                                class="px-4 py-2 text-xs font-bold bg-[#00ab97] hover:bg-[#008f7e] text-white rounded-xl shadow-xs cursor-pointer">
+                                <i class="fa-solid fa-plus mr-1"></i> Criar Primeiro Centro de Resultado
+                            </button>
+                       </div>`
+                    : `<div class="col-span-full bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-500 text-xs">
+                            Nenhum gestor ou centro de custo encontrado para o filtro atual.
+                       </div>`;
+                grid.innerHTML = msgVazio;
+                return;
+            }
+
+            grid.innerHTML = itensCR.map(cr => {
+                const estourou = cr.variacao > 0.01;
+                const percConsumo = cr.orcado > 0 ? (cr.realizado / cr.orcado) * 100 : (cr.realizado > 0 ? 100 : 0);
+                const larguraBarra = Math.min(100, Math.max(0, percConsumo));
+                const corBarra = estourou ? 'bg-rose-500' : 'bg-emerald-500';
+                const corVar = estourou ? 'text-rose-600' : 'text-emerald-600';
+                const badgeStatus = estourou
+                    ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-200">Acima do Orçado</span>`
+                    : `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200">Dentro do Orçado</span>`;
+
+                const acoesGrupo = cr.tipo === 'GRUPO'
+                    ? `<div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                            <button type="button" onclick="abrirModalGrupoCentroResultado('${escH(cr.id)}')" title="Editar grupo"
+                                class="p-1.5 rounded-lg text-slate-400 hover:text-[#008f7e] hover:bg-emerald-50 transition-colors cursor-pointer">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button type="button" onclick="excluirGrupoCentroResultado('${escH(cr.id)}')" title="Excluir grupo"
+                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                       </div>`
+                    : '';
+
+                return `
+                    <div onclick="abrirDetalheCentroResultado('${escH(cr.id)}')"
+                        class="bg-white rounded-2xl border border-slate-200 hover:border-[#00ab97] shadow-sm hover:shadow-md transition-all p-4 flex flex-col justify-between gap-3 cursor-pointer group">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700">
+                                        ${cr.centros.length} centro(s)
+                                    </span>
+                                    ${badgeStatus}
+                                </div>
+                                <h3 class="font-extrabold text-slate-800 text-sm group-hover:text-[#008f7e] transition-colors truncate">${escH(cr.nome)}</h3>
+                                <p class="text-[11px] text-slate-500 truncate mt-0.5">
+                                    <i class="fa-regular fa-user mr-1 text-slate-400"></i>${escH(cr.gestorNome)}
+                                    ${cr.gestorEmail ? ` • <span class="font-mono text-[10px]">${escH(cr.gestorEmail)}</span>` : ''}
+                                </p>
+                            </div>
+                            ${acoesGrupo}
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 bg-slate-50 rounded-xl p-2.5 border border-slate-100 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-semibold block">Orçado</span>
+                                <span class="font-bold text-slate-800">${formatMoeda(cr.orcado)}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-semibold block">Realizado</span>
+                                <span class="font-bold text-slate-800">${formatMoeda(cr.realizado)}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-slate-400 font-semibold block">Diferença</span>
+                                <span class="font-extrabold ${corVar}">${cr.variacao > 0 ? '+' : ''}${formatMoeda(cr.variacao)}</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[10px] font-bold text-slate-500">
+                                <span>Consumo do Orçamento</span>
+                                <span class="${corVar}">${percConsumo.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full ${corBarra} rounded-full transition-all" style="width: ${larguraBarra}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.abrirModalGrupoCentroResultado = function (idEditar = '') {
+            const modal = document.getElementById('modalConfigCentroResultado');
+            if (!modal) return;
+            const grupos = obterGruposCentrosResultado();
+            const grp = idEditar ? grupos.find(g => g.id === idEditar) : null;
+
+            document.getElementById('tituloModalGrupoCR').textContent = grp ? 'Editar Centro de Resultado' : 'Novo Centro de Resultado';
+            document.getElementById('inputCRId').value = grp ? grp.id : '';
+            document.getElementById('inputCRNome').value = grp ? grp.nome : '';
+            document.getElementById('inputCRGestor').value = grp ? (grp.gestorNome || '') : '';
+            document.getElementById('inputCREmail').value = grp ? (grp.gestorEmail || '') : '';
+            document.getElementById('inputBuscaCentrosModalCR').value = '';
+
+            const selecionadosNorm = new Set((grp?.centros || []).map(c => normC(c)));
+            const todosCentros = obterTodosCentrosDisponiveisParaCR();
+            const container = document.getElementById('listaCheckboxesCentrosCR');
+
+            if (todosCentros.length === 0) {
+                container.innerHTML = `<div class="col-span-full p-4 text-center text-slate-400 italic">Nenhum centro de custo disponível ainda. Selecione um mês ou importe uma planilha.</div>`;
+            } else {
+                container.innerHTML = todosCentros.map(c => {
+                    const checked = selecionadosNorm.has(normC(c)) ? 'checked' : '';
+                    const gC = getGestor(c);
+                    return `
+                        <label data-centro-label="${escH(normalizarTexto(c))}"
+                            class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 bg-slate-50/60 hover:bg-emerald-50/50 cursor-pointer transition-colors">
+                            <input type="checkbox" class="chk-centro-cr rounded text-[#00ab97] focus:ring-[#00ab97]" value="${escH(c)}" ${checked} onchange="atualizarContadorCheckboxesCR()">
+                            <div class="min-w-0 flex-1">
+                                <div class="font-semibold text-slate-800 text-[11px] truncate">${escH(c)}</div>
+                                ${gC ? `<div class="text-[10px] text-slate-400 truncate">Gestor: ${escH(gC.nome)}</div>` : ''}
+                            </div>
+                        </label>
+                    `;
+                }).join('');
+            }
+            atualizarContadorCheckboxesCR();
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => { modal.classList.add('modal-aberto'); });
+        };
+
+        window.fecharModalGrupoCentroResultado = function () {
+            const d1 = document.getElementById('dropdownAutocompleteCRGestor');
+            const d2 = document.getElementById('dropdownAutocompleteCREmail');
+            if (d1) d1.classList.add('hidden');
+            if (d2) d2.classList.add('hidden');
+            const modal = document.getElementById('modalConfigCentroResultado');
+            if (!modal) return;
+            modal.classList.remove('modal-aberto');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        };
+
+        function obterListaUnicaGestoresParaAutocomplete() {
+            const mapa = new Map();
+            Object.entries(gestores || {}).forEach(([, g]) => {
+                if (!g || (!g.nome && !g.email)) return;
+                const nome = String(g.nome || '').trim();
+                const email = String(g.email || '').trim();
+                const chave = email ? `email:${email.toLowerCase()}` : `nome:${normalizarTexto(nome)}`;
+                if (!mapa.has(chave)) {
+                    mapa.set(chave, { nome, email, qtdCentros: 1 });
+                } else {
+                    const exist = mapa.get(chave);
+                    exist.qtdCentros++;
+                    if (nome.length > exist.nome.length) exist.nome = nome;
+                }
+            });
+            return Array.from(mapa.values()).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        }
+
+        window.abrirAutocompleteGestorCR = function (tipoCampo) {
+            const isEmail = tipoCampo === 'EMAIL';
+            const inp = document.getElementById(isEmail ? 'inputCREmail' : 'inputCRGestor');
+            const drop = document.getElementById(isEmail ? 'dropdownAutocompleteCREmail' : 'dropdownAutocompleteCRGestor');
+            const outroDrop = document.getElementById(isEmail ? 'dropdownAutocompleteCRGestor' : 'dropdownAutocompleteCREmail');
+            if (outroDrop) outroDrop.classList.add('hidden');
+            if (!inp || !drop) return;
+
+            const termo = normalizarTexto(inp.value || '');
+            const lista = obterListaUnicaGestoresParaAutocomplete().filter(item => {
+                if (!termo) return true;
+                return normalizarTexto(item.nome).includes(termo) || normalizarTexto(item.email).includes(termo);
+            });
+
+            if (lista.length === 0) {
+                drop.innerHTML = `<div class="p-3 text-[11px] text-slate-400 italic text-center">Nenhum gestor cadastrado encontrado.</div>`;
+            } else {
+                drop.innerHTML = lista.map(item => `
+                    <button type="button"
+                        onmousedown="selecionarGestorAutocompleteCR('${escH(item.nome)}', '${escH(item.email)}')"
+                        class="w-full text-left px-3 py-2 hover:bg-emerald-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+                        <div class="min-w-0">
+                            <div class="font-bold text-slate-800 text-[11px] truncate">${escH(item.nome || 'Sem nome')}</div>
+                            <div class="text-[10px] text-slate-500 font-mono truncate">${escH(item.email || 'Sem e-mail')}</div>
+                        </div>
+                        <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[9px] font-bold shrink-0">
+                            ${item.qtdCentros} centro(s)
+                        </span>
+                    </button>
+                `).join('');
+            }
+            drop.classList.remove('hidden');
+        };
+
+        window.selecionarGestorAutocompleteCR = function (nome, email) {
+            const inpNome = document.getElementById('inputCRGestor');
+            const inpEmail = document.getElementById('inputCREmail');
+            if (inpNome) inpNome.value = nome || '';
+            if (inpEmail) inpEmail.value = email || '';
+            const d1 = document.getElementById('dropdownAutocompleteCRGestor');
+            const d2 = document.getElementById('dropdownAutocompleteCREmail');
+            if (d1) d1.classList.add('hidden');
+            if (d2) d2.classList.add('hidden');
+        };
+
+        window.fecharAutocompleteGestorCRComAtraso = function (tipoCampo) {
+            const idDrop = tipoCampo === 'EMAIL' ? 'dropdownAutocompleteCREmail' : 'dropdownAutocompleteCRGestor';
+            setTimeout(() => {
+                const drop = document.getElementById(idDrop);
+                if (drop) drop.classList.add('hidden');
+            }, 180);
+        };
+
+        window.atualizarContadorCheckboxesCR = function () {
+            const qtd = document.querySelectorAll('#listaCheckboxesCentrosCR .chk-centro-cr:checked').length;
+            const el = document.getElementById('crContadorCheckboxes');
+            if (el) el.textContent = `${qtd} selecionado(s)`;
+        };
+
+        window.filtrarCheckboxesModalCR = function () {
+            const termo = normalizarTexto(document.getElementById('inputBuscaCentrosModalCR')?.value || '');
+            document.querySelectorAll('#listaCheckboxesCentrosCR label').forEach(lbl => {
+                const txt = lbl.getAttribute('data-centro-label') || '';
+                lbl.style.display = (!termo || txt.includes(termo)) ? '' : 'none';
+            });
+        };
+
+        window.selecionarTodosCheckboxesCR = function (marcar) {
+            document.querySelectorAll('#listaCheckboxesCentrosCR label').forEach(lbl => {
+                if (lbl.style.display === 'none') return;
+                const chk = lbl.querySelector('.chk-centro-cr');
+                if (chk) chk.checked = Boolean(marcar);
+            });
+            atualizarContadorCheckboxesCR();
+        };
+
+        window.salvarGrupoCentroResultado = function () {
+            const idExist = document.getElementById('inputCRId').value.trim();
+            const nome = document.getElementById('inputCRNome').value.trim();
+            const gestorNome = document.getElementById('inputCRGestor').value.trim();
+            const gestorEmail = document.getElementById('inputCREmail').value.trim();
+            const centrosMarcados = Array.from(document.querySelectorAll('#listaCheckboxesCentrosCR .chk-centro-cr:checked')).map(el => el.value);
+
+            if (!nome) {
+                alert('Informe o nome do Centro de Resultado.');
+                return;
+            }
+            if (centrosMarcados.length === 0) {
+                alert('Selecione pelo menos um Centro de Custo para o grupo.');
+                return;
+            }
+
+            const grupos = obterGruposCentrosResultado();
+            const novoObj = {
+                id: idExist || `cr_${Date.now()}`,
+                nome,
+                gestorNome,
+                gestorEmail,
+                centros: centrosMarcados
+            };
+
+            const idx = grupos.findIndex(g => g.id === novoObj.id);
+            if (idx >= 0) grupos[idx] = novoObj;
+            else grupos.push(novoObj);
+
+            salvarGruposCentrosResultado(grupos);
+            fecharModalGrupoCentroResultado();
+            if (visaoCentrosResultado !== 'GRUPOS') alternarVisaoCentrosResultado('GRUPOS');
+            else renderizarCentrosResultado();
+
+            if (typeof mostrarAviso === 'function') {
+                mostrarAviso(`✅ Centro de Resultado <strong>${escH(nome)}</strong> salvo com ${centrosMarcados.length} centro(s) de custo.`, 3500);
+            }
+        };
+
+        window.excluirGrupoCentroResultado = function (idGrupo) {
+            const grupos = obterGruposCentrosResultado();
+            const alvo = grupos.find(g => g.id === idGrupo);
+            if (!alvo) return;
+            if (!confirm(`Deseja excluir o Centro de Resultado "${alvo.nome}"?`)) return;
+            const novaLista = grupos.filter(g => g.id !== idGrupo);
+            salvarGruposCentrosResultado(novaLista);
+            renderizarCentrosResultado();
+        };
+
+        window.abrirDetalheCentroResultado = function (idCR) {
+            const cr = _crCacheItensAtuais.find(x => x.id === idCR);
+            if (!cr) return;
+
+            document.getElementById('badgeTipoDetalheCR').textContent = cr.tipo === 'GRUPO' ? 'Grupo Personalizado' : 'Visão por Gestor';
+            document.getElementById('badgeMesDetalheCR').textContent = `Mês: ${competenciaAtual || 'Não selecionado'}`;
+            document.getElementById('tituloDetalheCR').textContent = cr.nome;
+            document.getElementById('subtituloDetalheCR').textContent = `Gestor: ${cr.gestorNome}${cr.gestorEmail ? ' • ' + cr.gestorEmail : ''}`;
+
+            const diff = cr.variacao;
+            const perc = cr.orcado > 0 ? (cr.realizado / cr.orcado) * 100 : 0;
+
+            document.getElementById('detCROrcado').textContent = formatMoeda(cr.orcado);
+            document.getElementById('detCRRealizado').textContent = formatMoeda(cr.realizado);
+            const elVar = document.getElementById('detCRVariacao');
+            elVar.textContent = (diff > 0 ? '+' : '') + formatMoeda(diff);
+            elVar.className = `text-lg font-extrabold mt-1 ${diff > 0.01 ? 'text-rose-600' : 'text-emerald-600'}`;
+            const elPerc = document.getElementById('detCRPerc');
+            elPerc.textContent = `${perc.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+            elPerc.className = `text-lg font-extrabold mt-1 ${diff > 0.01 ? 'text-rose-600' : 'text-emerald-600'}`;
+            document.getElementById('detCRQtdCentros').textContent = `${cr.centros.length} centro(s) de custo`;
+
+            const tbody = document.getElementById('tbodyDetalheCR');
+            tbody.innerHTML = cr.centros
+                .slice()
+                .sort((a, b) => (b.realizado - b.orcado) - (a.realizado - a.orcado))
+                .map(c => {
+                    const d = c.realizado - c.orcado;
+                    const p = c.orcado > 0 ? (c.realizado / c.orcado) * 100 : (c.realizado > 0 ? 100 : 0);
+                    const corD = d > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
+                    return `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-bold text-slate-800">${escH(c.centro)}</td>
+                            <td class="p-2.5 text-slate-600">${escH(c.gestor)}</td>
+                            <td class="p-2.5 text-right whitespace-nowrap">${formatMoeda(c.orcado)}</td>
+                            <td class="p-2.5 text-right whitespace-nowrap">${formatMoeda(c.realizado)}</td>
+                            <td class="p-2.5 text-right whitespace-nowrap ${corD}">${d > 0 ? '+' : ''}${formatMoeda(d)}</td>
+                            <td class="p-2.5 text-right whitespace-nowrap font-semibold">${p.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</td>
+                            <td class="p-2.5 text-center whitespace-nowrap">
+                                <button type="button" onclick="fecharModalDetalheCentroResultado(); abrirModalDetalhes('${escH(c.centro)}', false)"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-[#00ab97] text-slate-700 hover:text-white transition-colors cursor-pointer">
+                                    <i class="fa-solid fa-magnifying-glass-chart mr-1"></i> Abrir Contas
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            const modal = document.getElementById('modalDetalheCentroResultado');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => { modal.classList.add('modal-aberto'); });
+        };
+
+        window.fecharModalDetalheCentroResultado = function () {
+            const modal = document.getElementById('modalDetalheCentroResultado');
+            if (!modal) return;
+            modal.classList.remove('modal-aberto');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        };
+
+        // =========================================================
+        // BACKUP COMPLETO EM 1 CLIQUE (EXPORTAR / RESTAURAR)
+        // =========================================================
+        window.abrirModalBackupCompleto = function () {
+            const repo = obterRepositorioCompetencias();
+            const qtdMeses = Object.keys(repo || {}).length;
+            const qtdGestores = Object.keys(gestores || {}).length;
+            const qtdCR = obterGruposCentrosResultado().length;
+            const qtdEnvios = (lsGet('hmdcc_historico_envios_detalhado', []) || []).length;
+
+            const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setTxt('bkQtdMeses', qtdMeses);
+            setTxt('bkQtdGestores', qtdGestores);
+            setTxt('bkQtdCR', qtdCR);
+            setTxt('bkQtdEnvios', qtdEnvios);
+
+            const modal = document.getElementById('modalBackupCompleto');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => { modal.classList.add('modal-aberto'); });
+        };
+
+        window.fecharModalBackupCompleto = function () {
+            const modal = document.getElementById('modalBackupCompleto');
+            if (!modal) return;
+            modal.classList.remove('modal-aberto');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        };
+
+        window.baixarBackupCompletoSistema = function () {
+            try {
+                const repo = obterRepositorioCompetencias();
+                const estadoCopia = {};
+                Object.keys(MEM_ESTADO_SERVIDOR || {}).forEach(k => {
+                    estadoCopia[k] = MEM_ESTADO_SERVIDOR[k];
+                });
+
+                const payload = {
+                    sistema: 'HMDCC_GESTAO_CUSTOS',
+                    versao: '2.0',
+                    geradoEm: new Date().toISOString(),
+                    usuario: (typeof obterEmailUsuarioLogado === 'function' ? obterEmailUsuarioLogado() : 'Sistema'),
+                    estadoServidor: estadoCopia,
+                    repositorioCompetencias: repo
+                };
+
+                const jsonStr = JSON.stringify(payload, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+                const carimbo = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+                baixarBlob(blob, `Backup_Sistema_HMDCC_${carimbo}.json`);
+
+                if (typeof mostrarAviso === 'function') {
+                    mostrarAviso(`🛡️ <strong>Backup completo baixado!</strong> (${Object.keys(repo).length} mês(es) e ${Object.keys(gestores || {}).length} gestor(es) salvos).`, 4500);
+                }
+            } catch (err) {
+                console.error('Erro ao gerar backup completo:', err);
+                alert('Não foi possível gerar o backup: ' + (err.message || 'erro desconhecido'));
+            }
+        };
+
+        window.restaurarBackupCompletoSistema = async function (file) {
+            if (!file) return;
+            try {
+                const texto = await file.text();
+                const payload = JSON.parse(texto);
+                if (!payload || payload.sistema !== 'HMDCC_GESTAO_CUSTOS' || typeof payload.estadoServidor !== 'object') {
+                    alert('Este arquivo não é um backup válido do Sistema HMDCC.');
+                    return;
+                }
+
+                const qtdMesesBk = payload.repositorioCompetencias ? Object.keys(payload.repositorioCompetencias).length : 0;
+                const dataBk = payload.geradoEm ? new Date(payload.geradoEm).toLocaleString('pt-BR') : 'desconhecida';
+                if (!confirm(`Deseja restaurar o backup gerado em ${dataBk} (${qtdMesesBk} mês(es) salvos)?\n\nIsso substituirá os dados atuais em memória e sincronizará com a nuvem.`)) {
+                    return;
+                }
+
+                mostrarLoading('Restaurando backup...', 'Aplicando dados salvos e sincronizando com o servidor.');
+
+                Object.entries(payload.estadoServidor).forEach(([k, v]) => {
+                    MEM_ESTADO_SERVIDOR[k] = v;
+                    gravarChaveNoServidorFirestore(k, v);
+                });
+
+                if (payload.repositorioCompetencias && typeof payload.repositorioCompetencias === 'object') {
+                    salvarRepositorioCompetencias(payload.repositorioCompetencias);
+                    for (const k of Object.keys(payload.repositorioCompetencias)) {
+                        const reg = payload.repositorioCompetencias[k];
+                        if (reg && Array.isArray(reg.data) && reg.data.length > 0) {
+                            await salvarCompetenciaUnicaNoFirestore(reg);
+                        }
+                    }
+                }
+
+                gestores = lsGet(LS_GESTORES, Object.assign({}, GESTORES_INICIAIS_SERVIDOR));
+                notificacoes = lsGet(LS_NOTIF, {});
+                configEficiencia = typeof obterConfigEficiencia === 'function' ? obterConfigEficiencia() : configEficiencia;
+                if (typeof popularSeletorCompetenciasHeader === 'function') popularSeletorCompetenciasHeader();
+                if (typeof renderChipsMeses === 'function') renderChipsMeses();
+                if (typeof popularSeletorMesesDoRepositorio === 'function') popularSeletorMesesDoRepositorio();
+                if (document.getElementById('moduloCentrosResultado') && !document.getElementById('moduloCentrosResultado').classList.contains('hidden')) {
+                    renderizarCentrosResultado();
+                }
+
+                abrirModalBackupCompleto();
+                if (typeof mostrarAviso === 'function') {
+                    mostrarAviso('✅ <strong>Backup restaurado com sucesso!</strong> Selecione o mês desejado no topo para visualizar.', 5000);
+                }
+            } catch (err) {
+                console.error('Erro ao restaurar backup:', err);
+                alert('Erro ao ler o arquivo de backup: ' + (err.message || 'arquivo inválido'));
+            } finally {
+                ocultarLoading();
+            }
         };
 
         // Restaurar automaticamente dados do Servidor Firebase ao iniciar (sem uso de localStorage)
