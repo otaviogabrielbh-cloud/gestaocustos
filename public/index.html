@@ -685,6 +685,16 @@
                             <span class="sidebar-text-label truncate">Backup Completo</span>
                         </button>
 
+                        <button id="btnContadorDiasUteis" onclick="abrirModalContadorDiasUteis()"
+                            title="Contador Automático de Dias Úteis e Controle de Prazos ONA (6º e 7º dia útil)"
+                            class="w-full px-3.5 py-2.5 text-xs font-semibold rounded text-teal-950 hover:text-white hover:bg-[#008f7e] transition-all flex items-center justify-between gap-2 text-left">
+                            <span class="flex items-center gap-3 min-w-0">
+                                <i class="fa-solid fa-calendar-week text-teal-900 text-base w-5 text-center flex-shrink-0"></i>
+                                <span class="sidebar-text-label truncate">Dias Úteis (ONA)</span>
+                            </span>
+                            <span id="badgeSidebarDiaUtil" class="sidebar-text-label px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-white/80 text-teal-950 shrink-0">-- d.u.</span>
+                        </button>
+
                         <button id="btnAdminAcessos" onclick="abrirModalAdminAcessos()"
                             title="Painel exclusivo do Administrador (otavio.gabriel@hmdcc.com.br) para autorizar novos acessos"
                             class="hidden w-full px-3.5 py-2.5 text-xs font-bold rounded bg-amber-400/20 text-teal-950 hover:text-white hover:bg-[#008f7e] border border-amber-500/40 transition-all flex items-center justify-between gap-2 text-left">
@@ -3247,6 +3257,153 @@
         </div>
     </div>
 
+    <!-- MODAL: CONTADOR DE DIAS ÚTEIS E PRAZOS ONA (6º E 7º DIA ÚTIL) -->
+    <div id="modalContadorDiasUteis"
+        class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10055] p-3 sm:p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 bg-gradient-to-r from-[#003A66] to-[#05604e] text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/15 text-teal-200 flex items-center justify-center border border-white/20">
+                        <i class="fa-solid fa-calendar-week text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="font-bold text-base">Contador de Dias Úteis & Prazos ONA</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950">ONA Nível 2 • Controle de Processos</span>
+                        </div>
+                        <p class="text-[11px] text-emerald-100 mt-0.5">Acompanhamento automático do 6º dia útil (prazo final) e 7º dia útil (1º marco de cobrança).</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalContadorDiasUteis()" class="text-slate-200 hover:text-white p-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-4 flex-1 bg-slate-50 text-xs">
+                <!-- Seletor de Mês/Ano + Edição de Prazos por Liberação de Despesas -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3 shadow-2xs">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <label class="text-[11px] font-bold text-slate-600 uppercase">Mês / Ano:</label>
+                            <select id="duSelectMes" onchange="renderizarContadorDiasUteis()"
+                                class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                            <select id="duSelectAno" onchange="renderizarContadorDiasUteis()"
+                                class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                            </select>
+                        </div>
+                        <div id="duBannerStatusHoje" class="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2">
+                            --
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+                        <div class="text-[11px] text-slate-600">
+                            <strong class="text-slate-800"><i class="fa-solid fa-pen-to-square text-[#00ab97] mr-1"></i>Editar Prazos deste Mês:</strong>
+                            Ajuste caso a liberação das despesas atrase.
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label class="flex items-center gap-1.5 text-[11px] font-bold text-sky-900 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-lg">
+                                Início do Prazo:
+                                <input type="date" id="duInputInicioPrazo"
+                                    class="px-1.5 py-0.5 bg-white border border-sky-300 rounded text-[11px] font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#00ab97]">
+                            </label>
+                            <label class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                                Prazo Final (d.u.):
+                                <input type="number" id="duInputPrazoFinal" min="1" max="23" value="6"
+                                    class="w-12 px-1.5 py-0.5 bg-white border border-emerald-300 rounded text-center font-extrabold text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#00ab97]">
+                            </label>
+                            <label class="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                                1º Marco (d.u.):
+                                <input type="number" id="duInputMarco1" min="1" max="23" value="7"
+                                    class="w-12 px-1.5 py-0.5 bg-white border border-amber-300 rounded text-center font-extrabold text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#00ab97]">
+                            </label>
+                            <button type="button" onclick="salvarPrazosMesDU()"
+                                class="px-3 py-1.5 rounded-lg bg-[#00ab97] hover:bg-[#008f7e] text-white font-bold text-[11px] transition-colors cursor-pointer shadow-2xs">
+                                <i class="fa-solid fa-check mr-1"></i>Salvar Prazo
+                            </button>
+                            <button type="button" onclick="restaurarPrazosPadraoMesDU()"
+                                class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition-colors cursor-pointer">
+                                Padrão (6º / 7º)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Cards de Marcos de Dias Úteis -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Dia Útil Atual</span>
+                        <div id="duCardHoje" class="text-xl font-black text-slate-800 mt-1">--</div>
+                        <span id="duCardHojeSub" class="text-[10px] text-slate-400">Referência de hoje</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-emerald-200 shadow-2xs">
+                        <span id="duLabelCard6DU" class="text-[10px] font-bold text-emerald-700 uppercase block">6º Dia Útil (Prazo Final)</span>
+                        <div id="duCard6DU" class="text-xl font-black text-emerald-700 mt-1">--</div>
+                        <span class="text-[10px] text-emerald-600">Limite para justificativa</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-amber-200 shadow-2xs">
+                        <span id="duLabelCard7DU" class="text-[10px] font-bold text-amber-700 uppercase block">7º Dia Útil (1º Marco)</span>
+                        <div id="duCard7DU" class="text-xl font-black text-amber-600 mt-1">--</div>
+                        <span class="text-[10px] text-amber-700">Envio do E-mail de Lembrete</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Total de Dias Úteis</span>
+                        <div id="duCardTotalDU" class="text-xl font-black text-slate-800 mt-1">0</div>
+                        <span id="duCardFeriados" class="text-[10px] text-slate-400">0 feriado(s) no mês</span>
+                    </div>
+                </div>
+
+                <!-- Calendário Interativo (Clique no dia para marcar/desmarcar feriado) -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                        <div>
+                            <h4 class="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Calendário de Dias Úteis do Mês</h4>
+                            <p class="text-[11px] text-slate-500">Clique em qualquer dia útil (segunda a sexta) para marcar ou desmarcar como feriado/ponto facultativo.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-[10px] font-bold">
+                            <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-300">Início do Prazo</span>
+                            <span id="duLegendaPrazo" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">6º d.u. (Prazo)</span>
+                            <span id="duLegendaMarco1" class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">7º d.u. (Lembrete)</span>
+                            <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 border border-rose-200">Feriado</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1.5 text-center text-[10px] font-extrabold text-slate-500 uppercase">
+                        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                    </div>
+                    <div id="duGridCalendario" class="grid grid-cols-7 gap-1.5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <button type="button" onclick="fecharModalContadorDiasUteis(); abrirModalAuditoriaEnvios()"
+                    class="px-4 py-2 text-xs font-bold bg-[#05604e] hover:bg-[#044a3c] text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-envelopes-bulk"></i> Ir para Auditoria & Régua de Cobrança
+                </button>
+                <button type="button" onclick="fecharModalContadorDiasUteis()"
+                    class="px-5 py-2 text-xs font-extrabold bg-slate-800 hover:bg-slate-700 text-white rounded-lg cursor-pointer">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DA ENGRENAGEM: CONFIGURAÇÃO DE PROPORÇÃO E CONTAS DA EFICIÊNCIA DO ORÇAMENTO -->
     <div id="modalConfigEficiencia"
         class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10000] p-3 sm:p-4">
@@ -3917,6 +4074,11 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <h3 class="font-bold text-base leading-tight text-white">Auditoria de Envios & Régua de Cobrança aos Gestores</h3>
                             <span id="auditHeaderBadgeMesAnalise" class="hidden"></span>
+                            <button type="button" id="auditBadgeDiaUtilAtual" onclick="abrirModalContadorDiasUteis()"
+                                title="Clique para abrir o Contador de Dias Úteis e configurar feriados"
+                                class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950 shadow-2xs hover:bg-amber-300 transition-colors cursor-pointer">
+                                <i class="fa-solid fa-calendar-week mr-1"></i>-- d.u.
+                            </button>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-100 border border-emerald-300/30">
                                 <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Sincronizado no Firebase
                             </span>
@@ -16060,11 +16222,352 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             }
         };
 
+        // =========================================================
+        // CONTADOR DE DIAS ÚTEIS & PRAZOS ONA (6º E 7º DIA ÚTIL)
+        // =========================================================
+        const LS_FERIADOS_DU = 'hmdcc_feriados_dias_uteis';
+        const FERIADOS_PADRAO_2026 = [
+            '2026-01-01', '2026-02-16', '2026-02-17', '2026-04-03', '2026-04-21',
+            '2026-05-01', '2026-06-04', '2026-08-15', '2026-09-07', '2026-10-12',
+            '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-08', '2026-12-25'
+        ];
+
+        function obterConjuntoFeriadosDU() {
+            const salvo = lsGet(LS_FERIADOS_DU, null);
+            if (Array.isArray(salvo)) return new Set(salvo);
+            return new Set(FERIADOS_PADRAO_2026);
+        }
+
+        function salvarConjuntoFeriadosDU(setFeriados) {
+            lsSet(LS_FERIADOS_DU, Array.from(setFeriados).sort());
+        }
+
+        const LS_PRAZOS_DU = 'hmdcc_prazos_dias_uteis';
+
+        function obterPrazosMesDU(ano, mes1a12) {
+            const mapaSalvo = lsGet(LS_PRAZOS_DU, {});
+            const chave = `${ano}-${String(mes1a12).padStart(2, '0')}`;
+            const reg = (mapaSalvo && typeof mapaSalvo === 'object') ? mapaSalvo[chave] : null;
+            const inicioPrazo = (reg && typeof reg.inicioPrazo === 'string') ? reg.inicioPrazo : '';
+            const prazoFinal = (reg && Number(reg.prazoFinal) >= 1) ? Number(reg.prazoFinal) : 6;
+            const marco1 = (reg && Number(reg.marco1) >= 1) ? Number(reg.marco1) : 7;
+            return { inicioPrazo, prazoFinal, marco1 };
+        }
+
+        window.salvarPrazosMesDU = function () {
+            const selM = document.getElementById('duSelectMes');
+            const selA = document.getElementById('duSelectAno');
+            const agora = new Date();
+            const mes = selM ? parseInt(selM.value, 10) : (agora.getMonth() + 1);
+            const ano = selA ? parseInt(selA.value, 10) : agora.getFullYear();
+
+            const inpIni = document.getElementById('duInputInicioPrazo');
+            const inpP = document.getElementById('duInputPrazoFinal');
+            const inpM = document.getElementById('duInputMarco1');
+            const inicioPrazo = inpIni ? inpIni.value.trim() : '';
+            let prazoFinal = parseInt(inpP?.value, 10);
+            let marco1 = parseInt(inpM?.value, 10);
+
+            if (!Number.isFinite(prazoFinal) || prazoFinal < 1 || prazoFinal > 23) {
+                alert('Informe um Prazo Final válido entre 1 e 23 dias úteis.');
+                return;
+            }
+            if (!Number.isFinite(marco1) || marco1 < 1 || marco1 > 23) {
+                alert('Informe um 1º Marco válido entre 1 e 23 dias úteis.');
+                return;
+            }
+            if (marco1 < prazoFinal) {
+                marco1 = prazoFinal + 1;
+                if (inpM) inpM.value = marco1;
+            }
+
+            const mapaSalvo = Object.assign({}, lsGet(LS_PRAZOS_DU, {}));
+            const chave = `${ano}-${String(mes).padStart(2, '0')}`;
+            mapaSalvo[chave] = { inicioPrazo, prazoFinal, marco1 };
+            lsSet(LS_PRAZOS_DU, mapaSalvo);
+
+            renderizarContadorDiasUteis();
+            atualizarBadgesDiaUtilSistema();
+            if (typeof mostrarAviso === 'function') {
+                const txtIni = inicioPrazo ? `Início <strong>${inicioPrazo.split('-').reverse().join('/')}</strong> | ` : '';
+                mostrarAviso(`✅ Prazos de <strong>${String(mes).padStart(2, '0')}/${ano}</strong> salvos: ${txtIni}Prazo Final <strong>${prazoFinal}º d.u.</strong> | 1º Marco <strong>${marco1}º d.u.</strong>`, 4000);
+            }
+        };
+
+        window.restaurarPrazosPadraoMesDU = function () {
+            const selM = document.getElementById('duSelectMes');
+            const selA = document.getElementById('duSelectAno');
+            const agora = new Date();
+            const mes = selM ? parseInt(selM.value, 10) : (agora.getMonth() + 1);
+            const ano = selA ? parseInt(selA.value, 10) : agora.getFullYear();
+
+            const mapaSalvo = Object.assign({}, lsGet(LS_PRAZOS_DU, {}));
+            const chave = `${ano}-${String(mes).padStart(2, '0')}`;
+            delete mapaSalvo[chave];
+            lsSet(LS_PRAZOS_DU, mapaSalvo);
+
+            renderizarContadorDiasUteis();
+            atualizarBadgesDiaUtilSistema();
+        };
+
+        function calcularMapaDiasUteisMes(ano, mes1a12) {
+            const feriados = obterConjuntoFeriadosDU();
+            const prazos = obterPrazosMesDU(ano, mes1a12);
+            const qtdDiasMes = new Date(ano, mes1a12, 0).getDate();
+            const dias = [];
+            let contadorDU = 0;
+            let contadorPrazoDU = 0;
+            let dataInicioPrazo = null;
+            let dataPrazoFinal = null;
+            let dataMarco1 = null;
+
+            for (let d = 1; d <= qtdDiasMes; d++) {
+                const dt = new Date(ano, mes1a12 - 1, d);
+                const dow = dt.getDay(); // 0=Dom, 6=Sab
+                const iso = `${ano}-${String(mes1a12).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const ehFimSemana = (dow === 0 || dow === 6);
+                const ehFeriado = feriados.has(iso);
+                const ehDiaUtil = !ehFimSemana && !ehFeriado;
+                let numDU = null;
+                let numDUPrazo = null;
+                if (ehDiaUtil) {
+                    contadorDU++;
+                    numDU = contadorDU;
+                    if (!prazos.inicioPrazo || iso >= prazos.inicioPrazo) {
+                        contadorPrazoDU++;
+                        numDUPrazo = contadorPrazoDU;
+                        if (contadorPrazoDU === 1) dataInicioPrazo = { dia: d, iso };
+                        if (contadorPrazoDU === prazos.prazoFinal) dataPrazoFinal = { dia: d, iso };
+                        if (contadorPrazoDU === prazos.marco1) dataMarco1 = { dia: d, iso };
+                    }
+                }
+                dias.push({ dia: d, iso, dow, ehFimSemana, ehFeriado, ehDiaUtil, numDU, numDUPrazo });
+            }
+
+            return {
+                ano,
+                mes: mes1a12,
+                prazos,
+                dias,
+                totalDiasUteis: contadorDU,
+                totalFeriadosUteis: dias.filter(x => !x.ehFimSemana && x.ehFeriado).length,
+                dataInicioPrazo,
+                data6DU: dataPrazoFinal,
+                data7DU: dataMarco1
+            };
+        }
+
+        function obterResumoDiaUtilHoje() {
+            const agora = new Date();
+            const ano = agora.getFullYear();
+            const mes = agora.getMonth() + 1;
+            const dia = agora.getDate();
+            const hojeIso = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+            const mapa = calcularMapaDiasUteisMes(ano, mes);
+            const { inicioPrazo, prazoFinal, marco1 } = mapa.prazos;
+            const infoHoje = mapa.dias.find(x => x.dia === dia);
+
+            let duMesAtual = 0;
+            if (infoHoje && infoHoje.numDU) {
+                duMesAtual = infoHoje.numDU;
+            } else {
+                const ant = mapa.dias.filter(x => x.dia <= dia && x.numDU);
+                duMesAtual = ant.length > 0 ? ant[ant.length - 1].numDU : 0;
+            }
+
+            let duAtual = 0;
+            if (infoHoje && infoHoje.numDUPrazo) {
+                duAtual = infoHoje.numDUPrazo;
+            } else {
+                const antPrazo = mapa.dias.filter(x => x.dia <= dia && x.numDUPrazo);
+                duAtual = antPrazo.length > 0 ? antPrazo[antPrazo.length - 1].numDUPrazo : 0;
+            }
+
+            let statusTexto = `Dentro do Prazo (≤ ${prazoFinal}º d.u.)`;
+            let statusTipo = 'PRAZO';
+            if (inicioPrazo && hojeIso < inicioPrazo) {
+                const iniBr = inicioPrazo.split('-').reverse().join('/');
+                statusTexto = `Aguardando Início do Prazo (${iniBr})`;
+                statusTipo = 'AGUARDANDO';
+            } else if (duAtual === marco1) {
+                statusTexto = `${marco1}º Dia Útil — Enviar Lembrete (1º Marco)`;
+                statusTipo = 'LEMBRETE';
+            } else if (duAtual > prazoFinal) {
+                statusTexto = `Prazo Encerrado (> ${prazoFinal}º d.u.) — Período de Cobrança / RNC`;
+                statusTipo = 'COBRANCA';
+            }
+
+            return { ano, mes, dia, hojeIso, duAtual, duMesAtual, ehDiaUtilHoje: Boolean(infoHoje && infoHoje.ehDiaUtil), statusTexto, statusTipo, mapa };
+        }
+
+        window.atualizarBadgesDiaUtilSistema = function () {
+            const res = obterResumoDiaUtilHoje();
+            const badgeSidebar = document.getElementById('badgeSidebarDiaUtil');
+            if (badgeSidebar) {
+                badgeSidebar.textContent = res.statusTipo === 'AGUARDANDO' ? 'Aguard.' : `${res.duAtual}º d.u.`;
+                if (res.statusTipo === 'PRAZO' || res.statusTipo === 'AGUARDANDO') {
+                    badgeSidebar.className = 'sidebar-text-label px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-emerald-100 text-emerald-900 shrink-0';
+                } else if (res.statusTipo === 'LEMBRETE') {
+                    badgeSidebar.className = 'sidebar-text-label px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-amber-300 text-slate-950 shrink-0';
+                } else {
+                    badgeSidebar.className = 'sidebar-text-label px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-rose-600 text-white shrink-0';
+                }
+            }
+
+            const badgeAudit = document.getElementById('auditBadgeDiaUtilAtual');
+            if (badgeAudit) {
+                const labelCurto = res.statusTipo === 'AGUARDANDO' ? 'Aguardando Início' : (res.statusTipo === 'PRAZO' ? 'No Prazo' : (res.statusTipo === 'LEMBRETE' ? '1º Marco' : 'Cobrança / RNC'));
+                badgeAudit.innerHTML = `<i class="fa-solid fa-calendar-week mr-1"></i>Prazo: ${res.duAtual}º d.u. (${labelCurto})`;
+                if (res.statusTipo === 'PRAZO' || res.statusTipo === 'AGUARDANDO') {
+                    badgeAudit.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-300 text-slate-950 shadow-2xs hover:bg-emerald-200 transition-colors cursor-pointer';
+                } else if (res.statusTipo === 'LEMBRETE') {
+                    badgeAudit.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950 shadow-2xs hover:bg-amber-300 transition-colors cursor-pointer';
+                } else {
+                    badgeAudit.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white shadow-2xs hover:bg-rose-400 transition-colors cursor-pointer';
+                }
+            }
+        };
+
+        window.alternarFeriadoDiaUtil = function (isoData) {
+            const setF = obterConjuntoFeriadosDU();
+            if (setF.has(isoData)) setF.delete(isoData);
+            else setF.add(isoData);
+            salvarConjuntoFeriadosDU(setF);
+            renderizarContadorDiasUteis();
+            atualizarBadgesDiaUtilSistema();
+        };
+
+        window.abrirModalContadorDiasUteis = function () {
+            const agora = new Date();
+            const selM = document.getElementById('duSelectMes');
+            const selA = document.getElementById('duSelectAno');
+            if (selM) selM.value = String(agora.getMonth() + 1);
+            if (selA) selA.value = String(agora.getFullYear());
+            renderizarContadorDiasUteis();
+
+            const modal = document.getElementById('modalContadorDiasUteis');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => { modal.classList.add('modal-aberto'); });
+        };
+
+        window.fecharModalContadorDiasUteis = function () {
+            const modal = document.getElementById('modalContadorDiasUteis');
+            if (!modal) return;
+            modal.classList.remove('modal-aberto');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        };
+
+        window.renderizarContadorDiasUteis = function () {
+            const selM = document.getElementById('duSelectMes');
+            const selA = document.getElementById('duSelectAno');
+            const agora = new Date();
+            const mes = selM ? parseInt(selM.value, 10) : (agora.getMonth() + 1);
+            const ano = selA ? parseInt(selA.value, 10) : agora.getFullYear();
+
+            const mapa = calcularMapaDiasUteisMes(ano, mes);
+            const { inicioPrazo, prazoFinal, marco1 } = mapa.prazos;
+            const resumoHoje = obterResumoDiaUtilHoje();
+            const fmtData = obj => obj ? `${String(obj.dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${ano}` : '--';
+
+            const inpIni = document.getElementById('duInputInicioPrazo');
+            const inpP = document.getElementById('duInputPrazoFinal');
+            const inpM = document.getElementById('duInputMarco1');
+            if (inpIni) inpIni.value = inicioPrazo || '';
+            if (inpP) inpP.value = prazoFinal;
+            if (inpM) inpM.value = marco1;
+
+            const lbl6 = document.getElementById('duLabelCard6DU');
+            const lbl7 = document.getElementById('duLabelCard7DU');
+            const legP = document.getElementById('duLegendaPrazo');
+            const legM = document.getElementById('duLegendaMarco1');
+            if (lbl6) lbl6.textContent = `${prazoFinal}º Dia Útil (Prazo Final)`;
+            if (lbl7) lbl7.textContent = `${marco1}º Dia Útil (1º Marco)`;
+            if (legP) legP.textContent = `${prazoFinal}º d.u. (Prazo)`;
+            if (legM) legM.textContent = `${marco1}º d.u. (Lembrete)`;
+
+            document.getElementById('duCardHoje').textContent = resumoHoje.statusTipo === 'AGUARDANDO' ? 'Aguardando Início' : `${resumoHoje.duAtual}º Dia Útil`;
+            const iniTxt = inicioPrazo ? ` • Início: ${inicioPrazo.split('-').reverse().join('/')}` : '';
+            document.getElementById('duCardHojeSub').textContent = `Hoje: ${String(resumoHoje.dia).padStart(2, '0')}/${String(resumoHoje.mes).padStart(2, '0')}/${resumoHoje.ano} (${resumoHoje.duMesAtual}º d.u. mês)${iniTxt}`;
+            document.getElementById('duCard6DU').textContent = fmtData(mapa.data6DU);
+            document.getElementById('duCard7DU').textContent = fmtData(mapa.data7DU);
+            document.getElementById('duCardTotalDU').textContent = mapa.totalDiasUteis;
+            document.getElementById('duCardFeriados').textContent = `${mapa.totalFeriadosUteis} feriado(s) em dia de semana`;
+
+            const banner = document.getElementById('duBannerStatusHoje');
+            if (banner) {
+                if (resumoHoje.statusTipo === 'PRAZO' || resumoHoje.statusTipo === 'AGUARDANDO') {
+                    banner.className = 'px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 bg-emerald-50 border-emerald-300 text-emerald-800';
+                    banner.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${resumoHoje.statusTexto}`;
+                } else if (resumoHoje.statusTipo === 'LEMBRETE') {
+                    banner.className = 'px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 bg-amber-50 border-amber-300 text-amber-900';
+                    banner.innerHTML = `<i class="fa-solid fa-bell"></i> ${resumoHoje.statusTexto}`;
+                } else {
+                    banner.className = 'px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 bg-rose-50 border-rose-300 text-rose-800';
+                    banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${resumoHoje.statusTexto}`;
+                }
+            }
+
+            const grid = document.getElementById('duGridCalendario');
+            if (!grid) return;
+
+            const primeiroDow = new Date(ano, mes - 1, 1).getDay();
+            let cells = [];
+            for (let i = 0; i < primeiroDow; i++) {
+                cells.push(`<div class="h-14 rounded-lg bg-slate-50/50 border border-dashed border-slate-200"></div>`);
+            }
+
+            const ehMesAtual = (ano === resumoHoje.ano && mes === resumoHoje.mes);
+            mapa.dias.forEach(d => {
+                const ehHoje = ehMesAtual && d.dia === resumoHoje.dia;
+                let cls = 'bg-white border-slate-200 text-slate-800 hover:border-[#00ab97] cursor-pointer';
+                let tag = d.numDU ? (inicioPrazo && d.numDUPrazo ? `${d.numDUPrazo}º d.u. prazo` : `${d.numDU}º d.u.`) : '';
+
+                if (d.ehFimSemana) {
+                    cls = 'bg-slate-100 border-slate-200 text-slate-400 cursor-default';
+                    tag = 'FDS';
+                } else if (d.ehFeriado) {
+                    cls = 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100 cursor-pointer';
+                    tag = 'Feriado';
+                } else if (d.numDUPrazo === prazoFinal) {
+                    cls = 'bg-emerald-100 border-emerald-400 text-emerald-950 font-bold cursor-pointer';
+                    tag = `${prazoFinal}º d.u. (Prazo)`;
+                } else if (d.numDUPrazo === marco1) {
+                    cls = 'bg-amber-100 border-amber-400 text-amber-950 font-bold cursor-pointer';
+                    tag = `${marco1}º d.u. (1º Marco)`;
+                } else if (inicioPrazo && d.numDUPrazo === 1) {
+                    cls = 'bg-sky-100 border-sky-400 text-sky-950 font-bold cursor-pointer';
+                    tag = 'Início Prazo (1º)';
+                }
+
+                const ringHoje = ehHoje ? 'ring-2 ring-[#003A66]' : '';
+                const clickAttr = d.ehFimSemana ? '' : `onclick="alternarFeriadoDiaUtil('${d.iso}')"`;
+
+                cells.push(`
+                    <div ${clickAttr} class="h-14 p-1.5 rounded-lg border ${cls} ${ringHoje} flex flex-col justify-between transition-all select-none">
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-xs">${String(d.dia).padStart(2, '0')}</span>
+                            ${ehHoje ? '<span class="px-1 rounded bg-[#003A66] text-white text-[8px] font-bold">HOJE</span>' : ''}
+                        </div>
+                        <span class="text-[9px] font-bold truncate">${tag}</span>
+                    </div>
+                `);
+            });
+
+            grid.innerHTML = cells.join('');
+        };
+
         // Restaurar automaticamente dados do Servidor Firebase ao iniciar (sem uso de localStorage)
         (async function restaurarPlanilhaAoIniciar() {
+            try { atualizarBadgesDiaUtilSistema(); } catch (e) { }
             try {
                 await sincronizarEstadoGeralDoServidor();
             } catch (e) { }
+            try { atualizarBadgesDiaUtilSistema(); } catch (e) { }
 
             // Sincroniza as competências disponíveis da nuvem e popula o seletor
             try {
