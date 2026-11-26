@@ -2208,6 +2208,43 @@
                         </div>
                     </section>
 
+                    <!-- PAINEL VISUAL: REINCIDÊNCIA DE CENTROS QUE NÃO REALIZARAM A ANÁLISE (POR GESTOR) -->
+                    <section id="secaoReincidenciaNaoAnaliseOrc" class="bg-white rounded-xl border border-rose-200 shadow-sm p-5 space-y-4">
+                        <div class="border-b border-slate-100 pb-3 flex flex-col lg:flex-row justify-between lg:items-center gap-3">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Centros de Custo que Não Realizaram a Análise (Frequência no Período)
+                                    </h3>
+                                    <span id="badgeQtdCentrosReincidenciaOrc" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-800 border border-rose-200">
+                                        0 centro(s)
+                                    </span>
+                                    <span id="badgeTotalOcorrenciasReincidenciaOrc" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                        0 ocorrência(s)
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    Ranking visual de quantas vezes cada centro de custo deixou de realizar a análise orçamentária nos meses selecionados, com o respectivo gestor cadastrado.
+                                </p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="relative w-full sm:w-64">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                                    <input type="text" id="inputBuscaReincidenciaCompOrc" oninput="filtrarReincidenciaCompOrc()"
+                                        placeholder="Buscar centro ou gestor..."
+                                        class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-500">
+                                </div>
+                                <button type="button" onclick="exportarReincidenciaCompOrcPDF()"
+                                    class="px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                                    <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="gridReincidenciaNaoAnaliseOrc" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto pr-1">
+                        </div>
+                    </section>
+
                     <section class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
                         <div class="border-b border-slate-100 pb-3 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                             <div>
@@ -14454,7 +14491,208 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             atualizarInsightsComparativos('CompOrc', meses, baseAnualOrc, confData, naoConfJustData, naoConfData, true);
             renderGraficoAnualOrc(labelsMeses, confData, naoConfJustData, naoConfData);
             renderGraficoConsolidadoMensalGenerico('chartConsolidadoMensalOrc', labelsMeses, confData, naoConfJustData, naoConfData);
+            renderReincidenciaNaoAnaliseCompOrc(meses, matrizCentros);
             renderMatrizAnualOrc(meses, matrizCentros);
+        };
+
+        let _reincidenciaCompOrcCache = [];
+        let _reincidenciaCompOrcMeses = [];
+
+        function renderReincidenciaNaoAnaliseCompOrc(meses, matriz) {
+            _reincidenciaCompOrcMeses = Array.isArray(meses) ? meses.slice() : [];
+            const lista = [];
+            Object.keys(matriz || {}).forEach(centro => {
+                const mesesFalhos = [];
+                _reincidenciaCompOrcMeses.forEach(m => {
+                    if (matriz[centro] && matriz[centro][m] === 'NAO_CONFORME') {
+                        mesesFalhos.push(m);
+                    }
+                });
+                if (mesesFalhos.length > 0) {
+                    const g = typeof getGestor === 'function' ? getGestor(centro) : null;
+                    lista.push({
+                        centro,
+                        gestorNome: g && g.nome ? g.nome : 'Gestor não cadastrado',
+                        gestorEmail: g && g.email ? g.email : '',
+                        semGestor: !(g && g.nome),
+                        qtdNaoRealizadas: mesesFalhos.length,
+                        totalMeses: _reincidenciaCompOrcMeses.length,
+                        mesesFalhos
+                    });
+                }
+            });
+
+            lista.sort((a, b) => {
+                if (b.qtdNaoRealizadas !== a.qtdNaoRealizadas) return b.qtdNaoRealizadas - a.qtdNaoRealizadas;
+                return a.centro.localeCompare(b.centro, 'pt-BR');
+            });
+
+            _reincidenciaCompOrcCache = lista;
+            filtrarReincidenciaCompOrc();
+        }
+
+        window.filtrarReincidenciaCompOrc = function () {
+            const grid = document.getElementById('gridReincidenciaNaoAnaliseOrc');
+            const badgeQtd = document.getElementById('badgeQtdCentrosReincidenciaOrc');
+            const badgeTotal = document.getElementById('badgeTotalOcorrenciasReincidenciaOrc');
+            if (!grid) return;
+
+            const termo = normalizarTexto(document.getElementById('inputBuscaReincidenciaCompOrc')?.value || '');
+            const filtrada = termo
+                ? _reincidenciaCompOrcCache.filter(item =>
+                    normalizarTexto(`${item.centro} ${item.gestorNome} ${item.gestorEmail}`).includes(termo)
+                )
+                : _reincidenciaCompOrcCache;
+
+            const totalOcorr = filtrada.reduce((s, x) => s + x.qtdNaoRealizadas, 0);
+            if (badgeQtd) badgeQtd.textContent = `${filtrada.length} centro(s)`;
+            if (badgeTotal) badgeTotal.textContent = `${totalOcorr} ocorrência(s)`;
+
+            if (filtrada.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full p-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
+                        <i class="fa-solid fa-circle-check text-2xl text-emerald-500 mb-2 block"></i>
+                        <div class="font-bold text-slate-700 text-xs">
+                            ${_reincidenciaCompOrcCache.length === 0
+                                ? 'Nenhum centro de custo deixou de realizar a análise nos meses selecionados!'
+                                : 'Nenhum centro de custo ou gestor encontrado para essa busca.'}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const maxQtd = Math.max(...filtrada.map(x => x.qtdNaoRealizadas), 1);
+
+            grid.innerHTML = filtrada.map((item, idx) => {
+                const percBarra = Math.round((item.qtdNaoRealizadas / Math.max(item.totalMeses, 1)) * 100);
+                const larguraRelativa = Math.max(12, Math.round((item.qtdNaoRealizadas / maxQtd) * 100));
+                const critico = item.qtdNaoRealizadas >= 3;
+                const corCard = critico ? 'border-rose-300 bg-rose-50/40' : 'border-amber-200 bg-amber-50/30';
+                const corBadgeNum = critico ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white';
+                const corBarra = critico ? 'bg-rose-600' : 'bg-amber-500';
+                const chipsMeses = item.mesesFalhos.map(m => {
+                    const nomeCurto = (NOMBRES_MESES[m] || m).slice(0, 3);
+                    return `<span class="px-1.5 py-0.5 rounded bg-white border border-rose-200 text-rose-700 font-bold text-[9px]">${escH(nomeCurto)}</span>`;
+                }).join('');
+
+                return `
+                    <div class="rounded-xl border ${corCard} p-3.5 flex flex-col justify-between gap-2.5 shadow-2xs">
+                        <div class="flex items-start justify-between gap-2.5">
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-bold text-slate-400">#${idx + 1} no ranking</div>
+                                <h4 class="font-extrabold text-slate-900 text-xs leading-snug break-words">${escH(item.centro)}</h4>
+                                <div class="mt-1 flex items-center gap-1.5 text-[11px] ${item.semGestor ? 'text-amber-700 font-semibold' : 'text-slate-700 font-semibold'}">
+                                    <i class="fa-solid fa-user-tie text-[10px] ${item.semGestor ? 'text-amber-600' : 'text-[#008f7e]'}"></i>
+                                    <span class="truncate" title="${escH(item.gestorEmail || item.gestorNome)}">${escH(item.gestorNome)}</span>
+                                </div>
+                            </div>
+                            <div class="shrink-0 text-center px-2.5 py-1.5 rounded-xl ${corBadgeNum} shadow-2xs">
+                                <div class="text-lg font-black leading-none">${item.qtdNaoRealizadas}x</div>
+                                <div class="text-[8px] uppercase font-bold opacity-90 mt-0.5">de ${item.totalMeses}</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="w-full h-2 bg-white rounded-full overflow-hidden border border-slate-200">
+                                <div class="h-full ${corBarra} rounded-full transition-all" style="width: ${larguraRelativa}%"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] text-slate-500">
+                                <span>Não analisou em ${percBarra}% dos meses</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1 pt-1 border-t border-slate-200/70">
+                            <span class="text-[9px] font-bold text-slate-500 mr-0.5">Meses:</span>
+                            ${chipsMeses}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.exportarReincidenciaCompOrcPDF = function () {
+            const termo = normalizarTexto(document.getElementById('inputBuscaReincidenciaCompOrc')?.value || '');
+            const lista = termo
+                ? _reincidenciaCompOrcCache.filter(item =>
+                    normalizarTexto(`${item.centro} ${item.gestorNome} ${item.gestorEmail}`).includes(termo)
+                )
+                : _reincidenciaCompOrcCache;
+
+            if (lista.length === 0) {
+                alert('Nenhum centro de custo pendente para exportar.');
+                return;
+            }
+
+            const nomesM = _reincidenciaCompOrcMeses.map(m => NOMBRES_MESES[m] || m).join(', ');
+            const agoraData = new Date().toLocaleString('pt-BR');
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert('Pop-up bloqueado pelo navegador. Permita pop-ups para gerar o PDF.');
+                return;
+            }
+
+            const linhasHtml = lista.map((item, idx) => `
+                <tr class="border-b border-slate-200">
+                    <td class="p-2 text-center font-bold text-slate-500">${idx + 1}</td>
+                    <td class="p-2 font-bold text-slate-900">${escH(item.centro)}</td>
+                    <td class="p-2 text-slate-700">
+                        <div class="font-semibold">${escH(item.gestorNome)}</div>
+                        ${item.gestorEmail ? `<div class="text-[9px] text-slate-500 font-mono">${escH(item.gestorEmail)}</div>` : ''}
+                    </td>
+                    <td class="p-2 text-center font-extrabold text-rose-700">${item.qtdNaoRealizadas}x (de ${item.totalMeses})</td>
+                    <td class="p-2 text-[10px] text-slate-700">${escH(item.mesesFalhos.map(m => NOMBRES_MESES[m] || m).join(', '))}</td>
+                </tr>
+            `).join('');
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="utf-8">
+                    <title>Ranking de Reincidência - Análise Orçamentária HMDCC</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <style>
+                        body { font-family: 'Open Sans', system-ui, sans-serif; font-size: 10.5px; }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: #fff !important; }
+                            @page { margin: 0.9cm; size: A4 portrait; }
+                            tr { break-inside: avoid; page-break-inside: avoid; }
+                            thead { display: table-header-group; }
+                        }
+                    </style>
+                </head>
+                <body class="p-5 bg-white text-slate-900">
+                    <div class="p-4 rounded-xl bg-slate-900 text-white flex justify-between items-center mb-4">
+                        <div>
+                            <div class="text-[10px] font-bold uppercase text-rose-300">Análise Comparativa Orçamentária • HMDCC</div>
+                            <h1 class="text-base font-extrabold">Centros de Custo que Não Realizaram a Análise</h1>
+                            <p class="text-[10px] text-slate-300 mt-0.5">Meses analisados: ${escH(nomesM)}</p>
+                        </div>
+                        <div class="text-right text-[10px] text-slate-300">
+                            <div class="font-bold text-white">${lista.length} centro(s)</div>
+                            <div>Gerado em: ${escH(agoraData)}</div>
+                        </div>
+                    </div>
+                    <table class="w-full text-left border-collapse border border-slate-200">
+                        <thead class="bg-slate-800 text-white uppercase text-[9px]">
+                            <tr>
+                                <th class="p-2 text-center">#</th>
+                                <th class="p-2">Centro de Custo</th>
+                                <th class="p-2">Gestor (Cadastro)</th>
+                                <th class="p-2 text-center">Vezes Sem Análise</th>
+                                <th class="p-2">Meses Pendentes</th>
+                            </tr>
+                        </thead>
+                        <tbody>${linhasHtml}</tbody>
+                    </table>
+                    <script>
+                        window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 450); });
+                    <\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
         };
 
         function renderGraficoAnualOrc(labels, cData, njData, nData) {
