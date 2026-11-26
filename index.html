@@ -3374,7 +3374,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                         <div>
                             <h4 class="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Calendário de Dias Úteis do Mês</h4>
-                            <p class="text-[11px] text-slate-500">Clique em qualquer dia útil (segunda a sexta) para marcar ou desmarcar como feriado/ponto facultativo.</p>
+                            <p class="text-[11px] text-slate-500">Clique no dia de <strong>Prazo Final (6º)</strong> ou <strong>1º Marco (7º)</strong> para ver os centros e contas pendentes de justificativa. Nos demais dias úteis, clique para marcar/desmarcar feriado.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 text-[10px] font-bold">
                             <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-300">Início do Prazo</span>
@@ -3397,6 +3397,88 @@
                     <i class="fa-solid fa-envelopes-bulk"></i> Ir para Auditoria & Régua de Cobrança
                 </button>
                 <button type="button" onclick="fecharModalContadorDiasUteis()"
+                    class="px-5 py-2 text-xs font-extrabold bg-slate-800 hover:bg-slate-700 text-white rounded-lg cursor-pointer">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PENDÊNCIAS DE ANÁLISE ORÇAMENTÁRIA DO DIA ÚTIL (6º / 7º D.U.) -->
+    <div id="modalPendenciasDiaUtilONA"
+        class="modal-overlay fixed inset-0 bg-slate-900/75 backdrop-blur-md hidden items-center justify-center z-[10060] p-3 sm:p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="p-4 bg-gradient-to-r from-[#003A66] to-[#05604e] text-white flex flex-wrap justify-between items-center gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold shadow-inner text-lg shrink-0">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="font-bold text-base truncate">Pendências de Análise Orçamentária (Sem Justificativa)</h3>
+                            <span id="badgeDiaPendenciaONA" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950">--</span>
+                        </div>
+                        <p class="text-[11px] text-emerald-100 mt-0.5">Somente centros de custo e contas contábeis com estouro e ainda sem justificativa.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalPendenciasDiaUtilONA()" class="text-slate-200 hover:text-white p-1.5 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 bg-slate-50 text-xs">
+                <!-- Filtros: Competência + Busca -->
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                    <div class="flex items-center gap-2">
+                        <label class="text-[11px] font-bold text-slate-600 uppercase whitespace-nowrap">Mês da Análise:</label>
+                        <select id="pendenciasDUSelectComp" onchange="renderizarPendenciasDiaUtilONA()"
+                            class="px-3 py-1.5 bg-emerald-50/70 border border-[#00ab97] rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                        </select>
+                    </div>
+                    <div class="relative w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="pendenciasDUBusca" oninput="renderizarPendenciasDiaUtilONA()"
+                            placeholder="Buscar centro, conta ou gestor..."
+                            class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#00ab97]">
+                    </div>
+                </div>
+
+                <!-- 3 Cards de Resumo -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="bg-white p-3.5 rounded-xl border border-rose-200 shadow-2xs">
+                        <span class="text-[10px] font-bold text-rose-600 uppercase block">Centros Pendentes</span>
+                        <div id="pendDUQtdCentros" class="text-2xl font-black text-rose-700 mt-0.5">0</div>
+                        <span class="text-[10px] text-slate-400">Não justificaram ainda</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-amber-200 shadow-2xs">
+                        <span class="text-[10px] font-bold text-amber-700 uppercase block">Contas Não Justificadas</span>
+                        <div id="pendDUQtdContas" class="text-2xl font-black text-amber-600 mt-0.5">0</div>
+                        <span class="text-[10px] text-slate-400">Contas estouradas sem parecer</span>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Estouro Sem Justificativa</span>
+                        <div id="pendDUTotalEstouro" class="text-2xl font-black text-slate-800 mt-0.5">R$ 0,00</div>
+                        <span class="text-[10px] text-slate-400">Soma das contas pendentes</span>
+                    </div>
+                </div>
+
+                <!-- Lista de Centros e Contas Pendentes -->
+                <div id="listaPendenciasDiaUtilONA" class="space-y-3">
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="exportarPendenciasDiaUtilPDF()"
+                        class="px-3.5 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-file-pdf"></i> Exportar PDF das Pendências
+                    </button>
+                    <button type="button" id="btnAlternarFeriadoPeloModalPend" onclick="alternarFeriadoPeloModalPendencias()"
+                        class="px-3 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer">
+                        <i class="fa-solid fa-calendar-xmark mr-1"></i> Marcar/Desmarcar Feriado
+                    </button>
+                </div>
+                <button type="button" onclick="fecharModalPendenciasDiaUtilONA()"
                     class="px-5 py-2 text-xs font-extrabold bg-slate-800 hover:bg-slate-700 text-white rounded-lg cursor-pointer">
                     Fechar
                 </button>
@@ -4340,21 +4422,42 @@
             <div class="p-5 space-y-4 overflow-y-auto text-xs bg-slate-50/40">
                 <!-- Formulário de Gestor -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                    <div>
+                    <div class="relative">
                         <label class="font-semibold text-slate-700">Centro de Custo</label>
-                        <input id="gestCentro" list="dlCentros" type="text" placeholder="Selecione ou digite..."
+                        <input id="gestCentro" type="text" autocomplete="off"
+                            onfocus="abrirAutocompleteCentroCadastroGestor()"
+                            oninput="abrirAutocompleteCentroCadastroGestor()"
+                            onblur="fecharAutocompleteCentroCadastroGestorComAtraso()"
+                            placeholder="Selecione ou digite..."
                             class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-[#00ab97]">
                         <datalist id="dlCentros"></datalist>
+                        <div id="dropdownAutocompleteGestCentro"
+                            class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-slate-100">
+                        </div>
                     </div>
-                    <div>
+                    <div class="relative">
                         <label class="font-semibold text-slate-700">Nome do Gestor</label>
-                        <input id="gestNome" type="text" placeholder="Ex.: Adriana Silva"
+                        <input id="gestNome" type="text" autocomplete="off"
+                            onfocus="abrirAutocompleteCadastroGestor('NOME')"
+                            oninput="abrirAutocompleteCadastroGestor('NOME')"
+                            onblur="fecharAutocompleteCadastroGestorComAtraso('NOME')"
+                            placeholder="Busque um cadastrado ou digite novo..."
                             class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-[#00ab97]">
+                        <div id="dropdownAutocompleteGestNome"
+                            class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-52 overflow-y-auto divide-y divide-slate-100">
+                        </div>
                     </div>
-                    <div>
+                    <div class="relative">
                         <label class="font-semibold text-slate-700">E-mail do Gestor</label>
-                        <input id="gestEmail" type="email" placeholder="gestor@hmdcc.com.br"
+                        <input id="gestEmail" type="email" autocomplete="off"
+                            onfocus="abrirAutocompleteCadastroGestor('EMAIL')"
+                            oninput="abrirAutocompleteCadastroGestor('EMAIL')"
+                            onblur="fecharAutocompleteCadastroGestorComAtraso('EMAIL')"
+                            placeholder="Busque um cadastrado ou digite novo..."
                             class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-[#00ab97]">
+                        <div id="dropdownAutocompleteGestEmail"
+                            class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-52 overflow-y-auto divide-y divide-slate-100">
+                        </div>
                     </div>
                     <button onclick="salvarGestor()"
                         class="md:col-span-3 py-2.5 px-4 bg-[#00ab97] hover:bg-[#008f7e] text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-xs">
@@ -4834,11 +4937,19 @@
                                         Registra e envia a Abertura de Não Conformidade (RNC) por ausência de resposta.
                                     </p>
                                 </div>
-                                <div class="pt-1.5 border-t border-rose-100 flex items-center justify-between text-[10px] font-bold text-rose-700">
-                                    <span id="infoDataOpcaoMarco3">Clique para abrir RNC</span>
-                                    <span class="inline-flex items-center gap-1 bg-rose-100 px-2 py-0.5 rounded text-rose-900 group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                                        Enviar RNC <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
-                                    </span>
+                                <div class="pt-1.5 border-t border-rose-100 flex items-center justify-between gap-1 text-[10px] font-bold text-rose-700">
+                                    <span id="infoDataOpcaoMarco3" class="truncate">Clique para abrir RNC</span>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <span role="button" tabindex="0"
+                                            onclick="event.stopPropagation(); gerarRelatorioEvidenciasRNCPDF(window.centroModalAtual)"
+                                            title="Gerar Relatório de Evidências em PDF para Abertura da RNC"
+                                            class="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white px-2 py-0.5 rounded transition-colors cursor-pointer">
+                                            <i class="fa-solid fa-file-pdf text-[9px]"></i> PDF Evidências
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 bg-rose-100 px-2 py-0.5 rounded text-rose-900 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                                            Enviar RNC <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                        </span>
+                                    </div>
                                 </div>
                             </button>
                         </div>
@@ -10831,6 +10942,12 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                                 <i class="fa-solid ${dtM3 ? 'fa-check text-emerald-600' : 'fa-gavel'} text-[9px]"></i>
                             </button>
 
+                            <!-- PDF Evidências RNC -->
+                            <button type="button" onclick="gerarRelatorioEvidenciasRNCPDF('${escH(item.centro)}', '${escH(item.competencia)}', '${escH(item.marco3Protocolo || '')}')"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-300 bg-slate-800 hover:bg-slate-900 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-file-pdf text-rose-400"></i> PDF Evidências RNC
+                            </button>
+
                             <!-- Copiar WhatsApp -->
                             <button type="button" onclick="copiarWhatsAppDaAuditoria('${escH(item.centro)}', '${escH(item.competencia)}', ${marcoZap}, '${escH(item.marco3Protocolo || '')}')"
                                 class="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-300 bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer">
@@ -11165,7 +11282,11 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
         };
 
         window.abrirModalGestores = function (centroPre) {
-            document.getElementById('dlCentros').innerHTML = centrosDisponiveis.map(c => `<option value="${escH(c)}">`).join('');
+            const listaCentrosExcel = typeof obterTodosCentrosDisponiveisParaCR === 'function'
+                ? obterTodosCentrosDisponiveisParaCR()
+                : (centrosDisponiveis || []);
+            const dl = document.getElementById('dlCentros');
+            if (dl) dl.innerHTML = listaCentrosExcel.map(c => `<option value="${escH(c)}">`).join('');
             const g = centroPre ? getGestor(centroPre) : null;
             document.getElementById('gestCentro').value = centroPre || "";
             document.getElementById('gestNome').value = g ? g.nome : "";
@@ -11180,6 +11301,12 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
         };
 
         window.fecharModalGestores = function () {
+            const d0 = document.getElementById('dropdownAutocompleteGestCentro');
+            const d1 = document.getElementById('dropdownAutocompleteGestNome');
+            const d2 = document.getElementById('dropdownAutocompleteGestEmail');
+            if (d0) d0.classList.add('hidden');
+            if (d1) d1.classList.add('hidden');
+            if (d2) d2.classList.add('hidden');
             const m = document.getElementById('modalGestores');
             if (m) {
                 m.classList.remove('modal-aberto');
@@ -11191,6 +11318,152 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             if (!document.getElementById('modalDetalhes').classList.contains('hidden') && window.centroModalAtual) {
                 atualizarBotaoNotificar(window.centroModalAtual, true);
             }
+        };
+
+        window.abrirAutocompleteCentroCadastroGestor = function () {
+            const inp = document.getElementById('gestCentro');
+            const drop = document.getElementById('dropdownAutocompleteGestCentro');
+            const d1 = document.getElementById('dropdownAutocompleteGestNome');
+            const d2 = document.getElementById('dropdownAutocompleteGestEmail');
+            if (d1) d1.classList.add('hidden');
+            if (d2) d2.classList.add('hidden');
+            if (!inp || !drop) return;
+
+            const termo = normalizarTexto(inp.value || '');
+            const todos = typeof obterTodosCentrosDisponiveisParaCR === 'function'
+                ? obterTodosCentrosDisponiveisParaCR()
+                : (centrosDisponiveis || []);
+            const filtrados = todos.filter(c => !termo || normalizarTexto(c).includes(termo));
+
+            if (filtrados.length === 0) {
+                drop.innerHTML = `<div class="p-3 text-[11px] text-slate-400 italic text-center">Nenhum centro encontrado nas planilhas. Você pode digitar um novo acima.</div>`;
+            } else {
+                drop.innerHTML = filtrados.map(c => {
+                    const g = getGestor(c);
+                    return `
+                        <button type="button"
+                            onmousedown="selecionarCentroCadastroAutocomplete('${escH(c)}')"
+                            class="w-full text-left px-3 py-2 hover:bg-emerald-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+                            <span class="font-bold text-slate-800 text-[11px] truncate">${escH(c)}</span>
+                            ${g
+                                ? `<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold shrink-0">${escH(g.nome)}</span>`
+                                : `<span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-bold shrink-0">Sem gestor</span>`
+                            }
+                        </button>
+                    `;
+                }).join('');
+            }
+            drop.classList.remove('hidden');
+        };
+
+        window.selecionarCentroCadastroAutocomplete = function (centro) {
+            const inpCentro = document.getElementById('gestCentro');
+            const inpNome = document.getElementById('gestNome');
+            const inpEmail = document.getElementById('gestEmail');
+            const drop = document.getElementById('dropdownAutocompleteGestCentro');
+            if (inpCentro) inpCentro.value = centro || '';
+            const g = centro ? getGestor(centro) : null;
+            if (g) {
+                if (inpNome) inpNome.value = g.nome || '';
+                if (inpEmail) inpEmail.value = g.email || '';
+            }
+            if (drop) drop.classList.add('hidden');
+        };
+
+        window.fecharAutocompleteCentroCadastroGestorComAtraso = function () {
+            setTimeout(() => {
+                const drop = document.getElementById('dropdownAutocompleteGestCentro');
+                if (drop) drop.classList.add('hidden');
+            }, 180);
+        };
+
+        window.abrirAutocompleteCadastroGestor = function (tipoCampo) {
+            const isEmail = tipoCampo === 'EMAIL';
+            const inp = document.getElementById(isEmail ? 'gestEmail' : 'gestNome');
+            const drop = document.getElementById(isEmail ? 'dropdownAutocompleteGestEmail' : 'dropdownAutocompleteGestNome');
+            const outroDrop = document.getElementById(isEmail ? 'dropdownAutocompleteGestNome' : 'dropdownAutocompleteGestEmail');
+            if (outroDrop) outroDrop.classList.add('hidden');
+            if (!inp || !drop) return;
+
+            const valorBruto = inp.value.trim();
+            const termo = normalizarTexto(valorBruto);
+            const todos = typeof obterListaUnicaGestoresParaAutocomplete === 'function'
+                ? obterListaUnicaGestoresParaAutocomplete()
+                : [];
+            const filtrados = todos.filter(item => {
+                if (!termo) return true;
+                return normalizarTexto(item.nome).includes(termo) || normalizarTexto(item.email).includes(termo);
+            });
+
+            const matchExato = valorBruto && todos.some(item =>
+                normalizarTexto(item.nome) === termo || normalizarTexto(item.email) === termo
+            );
+
+            let html = filtrados.map(item => `
+                <button type="button"
+                    onmousedown="selecionarGestorCadastroAutocomplete('${escH(item.nome)}', '${escH(item.email)}')"
+                    class="w-full text-left px-3 py-2 hover:bg-emerald-50 transition-colors flex items-center justify-between gap-2 cursor-pointer">
+                    <div class="min-w-0">
+                        <div class="font-bold text-slate-800 text-[11px] truncate">${escH(item.nome || 'Sem nome')}</div>
+                        <div class="text-[10px] text-slate-500 font-mono truncate">${escH(item.email || 'Sem e-mail')}</div>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[9px] font-bold shrink-0">
+                        ${item.qtdCentros} centro(s)
+                    </span>
+                </button>
+            `).join('');
+
+            if (valorBruto && !matchExato) {
+                html += `
+                    <button type="button"
+                        onmousedown="usarNovoGestorDigitadoCadastro()"
+                        class="w-full text-left px-3 py-2 bg-sky-50/70 hover:bg-sky-100 transition-colors flex items-center gap-2 cursor-pointer text-sky-900">
+                        <i class="fa-solid fa-user-plus text-sky-600 text-xs"></i>
+                        <div class="min-w-0">
+                            <div class="font-bold text-[11px] truncate">Gerar novo gestor: "${escH(valorBruto)}"</div>
+                            <div class="text-[10px] text-sky-700">Não está cadastrado — complete os campos e clique em Salvar Gestor</div>
+                        </div>
+                    </button>
+                `;
+            } else if (!html) {
+                html = `<div class="p-3 text-[11px] text-slate-400 italic text-center">Nenhum gestor cadastrado ainda. Digite para criar um novo.</div>`;
+            }
+
+            drop.innerHTML = html;
+            drop.classList.remove('hidden');
+        };
+
+        window.selecionarGestorCadastroAutocomplete = function (nome, email) {
+            const inpNome = document.getElementById('gestNome');
+            const inpEmail = document.getElementById('gestEmail');
+            if (inpNome) inpNome.value = nome || '';
+            if (inpEmail) inpEmail.value = email || '';
+            const d1 = document.getElementById('dropdownAutocompleteGestNome');
+            const d2 = document.getElementById('dropdownAutocompleteGestEmail');
+            if (d1) d1.classList.add('hidden');
+            if (d2) d2.classList.add('hidden');
+        };
+
+        window.usarNovoGestorDigitadoCadastro = function () {
+            const d1 = document.getElementById('dropdownAutocompleteGestNome');
+            const d2 = document.getElementById('dropdownAutocompleteGestEmail');
+            if (d1) d1.classList.add('hidden');
+            if (d2) d2.classList.add('hidden');
+            const inpNome = document.getElementById('gestNome');
+            const inpEmail = document.getElementById('gestEmail');
+            if (inpNome && inpNome.value.trim() && inpEmail && !inpEmail.value.trim()) {
+                setTimeout(() => inpEmail.focus(), 30);
+            } else if (inpEmail && inpEmail.value.trim() && inpNome && !inpNome.value.trim()) {
+                setTimeout(() => inpNome.focus(), 30);
+            }
+        };
+
+        window.fecharAutocompleteCadastroGestorComAtraso = function (tipoCampo) {
+            const idDrop = tipoCampo === 'EMAIL' ? 'dropdownAutocompleteGestEmail' : 'dropdownAutocompleteGestNome';
+            setTimeout(() => {
+                const drop = document.getElementById(idDrop);
+                if (drop) drop.classList.add('hidden');
+            }, 180);
         };
 
         window.abrirModalTextoPadraoEmail = function () {
@@ -11811,6 +12084,258 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     </div>
                 `, 6000);
             }
+        };
+
+        // Gera Relatório Oficial de Evidências para Abertura da Não Conformidade (RNC) em PDF
+        window.gerarRelatorioEvidenciasRNCPDF = function (centro, compOverride, protocoloOverride) {
+            if (!centro) centro = window.centroModalAtual;
+            if (!centro) {
+                alert('Nenhum centro de custo selecionado.');
+                return;
+            }
+
+            const comp = (compOverride && compOverride !== 'Vigente')
+                ? compOverride
+                : ((competenciaAtual && competenciaAtual !== 'Vigente') ? competenciaAtual : '09/2026');
+
+            const g = typeof getGestor === 'function' ? getGestor(centro) : null;
+            const reg = typeof obterRegistroAuditoriaDoCentroNoMes === 'function'
+                ? obterRegistroAuditoriaDoCentroNoMes(centro, comp)
+                : null;
+
+            const protocolo = (protocoloOverride && protocoloOverride.trim())
+                ? protocoloOverride.trim()
+                : ((reg && reg.marco3Protocolo) ? reg.marco3Protocolo : `RNC-${comp.replace('/', '')}-PREVIA`);
+
+            let basePlanilha = typeof obterDadosPlanilhaPorCompetencia === 'function'
+                ? obterDadosPlanilhaPorCompetencia(comp)
+                : [];
+            if (!Array.isArray(basePlanilha) || basePlanilha.length === 0) {
+                basePlanilha = Array.isArray(rawExcelData) ? rawExcelData : [];
+            }
+
+            const temFiltroContas = typeof contasSelecionadasJust !== 'undefined' && contasSelecionadasJust.size > 0;
+            const linhasCentro = basePlanilha.filter(r =>
+                r && normC(r.centro) === normC(centro) &&
+                (!temFiltroContas || contasSelecionadasJust.has(r.conta)) &&
+                !(r.conta && String(r.conta).startsWith('3'))
+            );
+
+            let orcCentro = 0, realCentro = 0;
+            const contasEstouradasSemJust = [];
+            linhasCentro.forEach(r => {
+                const orc = Number(r.orcado) || 0;
+                const real = Number(r.realizado) || 0;
+                orcCentro += orc;
+                realCentro += real;
+                const diff = real - orc;
+                let txtJust = (r.justificativa && String(r.justificativa).trim() !== '' && String(r.justificativa).trim() !== '-')
+                    ? String(r.justificativa).trim()
+                    : '';
+                if (!txtJust && typeof getJustificativa === 'function') {
+                    const jS = getJustificativa(r.centro, r.conta, comp);
+                    if (jS && String(jS).trim() !== '' && String(jS).trim() !== '-') txtJust = String(jS).trim();
+                }
+                if (diff > 0.01 && !txtJust) {
+                    contasEstouradasSemJust.push({
+                        conta: r.conta || '-',
+                        descricao: r.descricao || '-',
+                        orcado: orc,
+                        realizado: real,
+                        estouro: diff,
+                        consumo: orc > 0 ? (real / orc) * 100 : 100
+                    });
+                }
+            });
+            contasEstouradasSemJust.sort((a, b) => b.estouro - a.estouro);
+
+            const varCentro = realCentro - orcCentro;
+            const consumoCentro = orcCentro > 0 ? (realCentro / orcCentro) * 100 : (realCentro > 0 ? 100 : 0);
+
+            const fmtDt = iso => iso ? new Date(iso).toLocaleString('pt-BR') : 'Não registrado no sistema';
+            const dtM1 = reg ? (reg.marco1Data || reg.dataHora || null) : (notificacoes[`${comp}|${centro}`] || null);
+            const dtM2 = reg ? reg.marco2Data : null;
+            const dtM3 = reg ? reg.marco3Data : null;
+
+            let txtPrazoRegulamentar = '6 dias úteis para justificativa ➔ 7º dia útil: Lembrete';
+            try {
+                const resumoDU = typeof obterResumoDiaUtilHoje === 'function' ? obterResumoDiaUtilHoje() : null;
+                if (resumoDU && resumoDU.mapa) {
+                    const { prazoFinal, marco1, inicioPrazo } = resumoDU.mapa.prazos;
+                    const fmtD = obj => obj ? `${String(obj.dia).padStart(2, '0')}/${String(resumoDU.mes).padStart(2, '0')}/${resumoDU.ano}` : '--';
+                    const iniStr = inicioPrazo ? `Início: ${inicioPrazo.split('-').reverse().join('/')} | ` : '';
+                    txtPrazoRegulamentar = `${iniStr}Prazo Final (${prazoFinal}º d.u.): ${fmtD(resumoDU.mapa.data6DU)} | 1º Marco (${marco1}º d.u.): ${fmtD(resumoDU.mapa.data7DU)}`;
+                }
+            } catch (e) { }
+
+            const usuarioEmissor = typeof obterEmailUsuarioLogado === 'function' ? obterEmailUsuarioLogado() : 'Sistema HMDCC';
+            const agoraData = new Date().toLocaleString('pt-BR');
+
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert('Pop-up bloqueado pelo navegador. Permita pop-ups para gerar o Relatório de Evidências RNC em PDF.');
+                return;
+            }
+
+            const linhasContasHtml = contasEstouradasSemJust.length > 0
+                ? contasEstouradasSemJust.map(ct => `
+                    <tr class="border-b border-slate-200">
+                        <td class="p-2 font-mono font-bold text-slate-800 whitespace-nowrap">${escH(ct.conta)}</td>
+                        <td class="p-2 text-slate-800">${escH(ct.descricao)}</td>
+                        <td class="p-2 text-right whitespace-nowrap">${formatMoeda(ct.orcado)}</td>
+                        <td class="p-2 text-right whitespace-nowrap">${formatMoeda(ct.realizado)}</td>
+                        <td class="p-2 text-right whitespace-nowrap font-bold text-rose-700">+${formatMoeda(ct.estouro)}</td>
+                        <td class="p-2 text-center whitespace-nowrap font-semibold">${ct.consumo.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</td>
+                    </tr>
+                `).join('')
+                : `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nenhuma conta estourada sem justificativa localizada nesta competência.</td></tr>`;
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="utf-8">
+                    <title>Relatório de Evidências RNC - ${escH(centro)} (${escH(comp)})</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                    <style>
+                        body { font-family: 'Open Sans', system-ui, -apple-system, sans-serif; font-size: 10.5px; }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: #fff !important; padding: 0 !important; }
+                            @page { margin: 1cm; size: A4 portrait; }
+                            .no-print { display: none !important; }
+                            tr, .bloco-evidencia { break-inside: avoid; page-break-inside: avoid; }
+                            thead { display: table-header-group; }
+                        }
+                    </style>
+                </head>
+                <body class="p-6 bg-slate-50 text-slate-900">
+                    <div class="max-w-4xl mx-auto space-y-4">
+                        <div class="no-print flex items-center justify-between bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow">
+                            <span class="text-xs font-semibold">Relatório de Evidências para Abertura de RNC (Formato A4)</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer">
+                                    <i class="fa-solid fa-print mr-1"></i> Salvar em PDF / Imprimir
+                                </button>
+                                <button onclick="window.close()" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold cursor-pointer">Fechar</button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-gradient-to-r from-[#003A66] to-slate-900 text-white flex justify-between items-start gap-4">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded bg-rose-600 text-white text-[9px] font-extrabold uppercase">Relatório Oficial de Evidências • RNC</span>
+                                    <span class="px-2 py-0.5 rounded bg-amber-400 text-slate-950 text-[9px] font-extrabold">Protocolo: ${escH(protocolo)}</span>
+                                </div>
+                                <h1 class="text-base font-extrabold mt-1.5">Dossiê de Evidências para Abertura de Não Conformidade</h1>
+                                <p class="text-[11px] text-slate-200 mt-0.5">Hospital Metropolitano Doutor Célio de Castro (HMDCC) • Gestão Orçamentária & Custos (ONA Nível 2)</p>
+                            </div>
+                            <div class="text-right text-[10px] text-slate-300 shrink-0">
+                                <div class="font-bold text-white">Competência: ${escH(comp)}</div>
+                                <div>Emitido em: ${escH(agoraData)}</div>
+                                <div>Por: ${escH(usuarioEmissor)}</div>
+                            </div>
+                        </div>
+
+                        <div class="bloco-evidencia bg-white rounded-xl border border-slate-200 p-4 space-y-2.5">
+                            <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-1.5">
+                                1. Identificação do Centro de Custo e Responsável
+                            </h2>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase block">Centro de Custo Auditado</span>
+                                    <strong class="text-slate-900">${escH(centro)}</strong>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase block">Gestor Responsável</span>
+                                    <strong class="text-slate-900">${escH(g ? g.nome : 'Não cadastrado')}</strong>
+                                    <span class="text-[10px] text-slate-500 block font-mono">${escH(g ? g.email : '-')}</span>
+                                </div>
+                                <div class="col-span-2 bg-rose-50 border border-rose-200 rounded-lg p-2.5 text-[11px] text-rose-900">
+                                    <strong>Fato / Não Conformidade Constatada:</strong> Extrapolação de orçamento no período (${escH(comp)}) sem registro de análise orçamentária/justificativa no sistema após o encerramento dos prazos regulamentares e notificações formais da régua de cobrança.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bloco-evidencia bg-white rounded-xl border border-slate-200 p-4 space-y-2.5">
+                            <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-1.5">
+                                2. Linha do Tempo de Notificações e Prazos (Evidência de Cobrança)
+                            </h2>
+                            <div class="text-[10px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-2">
+                                <strong>Regra de Prazo Vigente:</strong> ${escH(txtPrazoRegulamentar)}
+                            </div>
+                            <div class="grid grid-cols-3 gap-2.5 text-[10px]">
+                                <div class="p-2.5 rounded-lg border ${dtM1 ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-slate-50 border-slate-200 text-slate-500'}">
+                                    <div class="font-extrabold uppercase">1º Marco • Lembrete (7º d.u.)</div>
+                                    <div class="mt-1 font-mono font-bold">${escH(fmtDt(dtM1))}</div>
+                                </div>
+                                <div class="p-2.5 rounded-lg border ${dtM2 ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-slate-50 border-slate-200 text-slate-500'}">
+                                    <div class="font-extrabold uppercase">2º Marco • Não Realização</div>
+                                    <div class="mt-1 font-mono font-bold">${escH(fmtDt(dtM2))}</div>
+                                </div>
+                                <div class="p-2.5 rounded-lg border ${dtM3 ? 'bg-rose-50 border-rose-300 text-rose-950' : 'bg-amber-50 border-amber-300 text-amber-950'}">
+                                    <div class="font-extrabold uppercase">3º Marco • Abertura de RNC</div>
+                                    <div class="mt-1 font-mono font-bold">${dtM3 ? escH(fmtDt(dtM3)) : 'Em abertura (' + escH(agoraData) + ')'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bloco-evidencia grid grid-cols-4 gap-2.5">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase block">Orçado Custos</span>
+                                <strong class="text-sm font-extrabold text-slate-900">${formatMoeda(orcCentro)}</strong>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase block">Realizado Custos</span>
+                                <strong class="text-sm font-extrabold text-slate-900">${formatMoeda(realCentro)}</strong>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase block">Variação Total</span>
+                                <strong class="text-sm font-extrabold ${varCentro > 0.01 ? 'text-rose-700' : 'text-emerald-700'}">${varCentro > 0 ? '+' : ''}${formatMoeda(varCentro)}</strong>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase block">Consumo (%)</span>
+                                <strong class="text-sm font-extrabold text-slate-900">${consumoCentro.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-800">3. Contas Contábeis Estouradas Sem Justificativa (${contasEstouradasSemJust.length})</h2>
+                            </div>
+                            <table class="w-full text-left text-[10px] border-collapse">
+                                <thead class="bg-slate-800 text-white uppercase text-[9px]">
+                                    <tr>
+                                        <th class="p-2">Conta</th>
+                                        <th class="p-2">Descrição / Natureza</th>
+                                        <th class="p-2 text-right">Orçado (R$)</th>
+                                        <th class="p-2 text-right">Realizado (R$)</th>
+                                        <th class="p-2 text-right">Estouro (R$)</th>
+                                        <th class="p-2 text-center">Consumo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${linhasContasHtml}</tbody>
+                            </table>
+                        </div>
+
+                        <div class="bloco-evidencia bg-white rounded-xl border border-slate-200 p-4 grid grid-cols-2 gap-6 pt-8 text-center text-[10px] text-slate-600">
+                            <div class="border-t border-slate-400 pt-1.5">
+                                <strong class="block text-slate-800">Gestão de Custos e Orçamento — HMDCC</strong>
+                                Emissor da Evidência (${escH(usuarioEmissor)})
+                            </div>
+                            <div class="border-t border-slate-400 pt-1.5">
+                                <strong class="block text-slate-800">${escH(g ? g.nome : 'Gestor Responsável')}</strong>
+                                Ciência do Centro de Custo / Tratativa RNC
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 450); });
+                    <\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
         };
 
         window.garantirDadosAtivosParaRelatorio = function () {
@@ -16544,14 +17069,19 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     tag = 'Início Prazo (1º)';
                 }
 
+                const ehDiaMarcoPrazo = !d.ehFimSemana && !d.ehFeriado && (d.numDUPrazo === prazoFinal || d.numDUPrazo === marco1);
                 const ringHoje = ehHoje ? 'ring-2 ring-[#003A66]' : '';
-                const clickAttr = d.ehFimSemana ? '' : `onclick="alternarFeriadoDiaUtil('${d.iso}')"`;
+                const clickAttr = d.ehFimSemana
+                    ? ''
+                    : (ehDiaMarcoPrazo
+                        ? `onclick="abrirModalPendenciasDiaUtilONA('${d.iso}', ${d.numDUPrazo}, ${d.numDUPrazo === prazoFinal ? "'PRAZO'" : "'MARCO1'"})" title="Clique para ver os centros e contas pendentes de justificativa"`
+                        : `onclick="alternarFeriadoDiaUtil('${d.iso}')"`);
 
                 cells.push(`
                     <div ${clickAttr} class="h-14 p-1.5 rounded-lg border ${cls} ${ringHoje} flex flex-col justify-between transition-all select-none">
                         <div class="flex items-center justify-between">
                             <span class="font-extrabold text-xs">${String(d.dia).padStart(2, '0')}</span>
-                            ${ehHoje ? '<span class="px-1 rounded bg-[#003A66] text-white text-[8px] font-bold">HOJE</span>' : ''}
+                            ${ehHoje ? '<span class="px-1 rounded bg-[#003A66] text-white text-[8px] font-bold">HOJE</span>' : (ehDiaMarcoPrazo ? '<i class="fa-solid fa-clipboard-list text-[10px] opacity-75"></i>' : '')}
                         </div>
                         <span class="text-[9px] font-bold truncate">${tag}</span>
                     </div>
@@ -16559,6 +17089,371 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             });
 
             grid.innerHTML = cells.join('');
+        };
+
+        let _pendDUDataIsoAtual = '';
+        let _pendDUTipoDiaAtual = 'PRAZO';
+        let _pendDUNumDUAtual = 6;
+        let _pendDUCachedLista = [];
+
+        window.abrirModalPendenciasDiaUtilONA = function (isoData, numDUPrazo, tipoDia) {
+            _pendDUDataIsoAtual = isoData || '';
+            _pendDUNumDUAtual = numDUPrazo || 6;
+            _pendDUTipoDiaAtual = tipoDia || 'PRAZO';
+
+            const dataBr = isoData ? isoData.split('-').reverse().join('/') : '--';
+            const labelDia = _pendDUTipoDiaAtual === 'PRAZO'
+                ? `${dataBr} • ${_pendDUNumDUAtual}º d.u. (Prazo Final)`
+                : `${dataBr} • ${_pendDUNumDUAtual}º d.u. (1º Marco)`;
+            const badge = document.getElementById('badgeDiaPendenciaONA');
+            if (badge) badge.textContent = labelDia;
+
+            const selComp = document.getElementById('pendenciasDUSelectComp');
+            if (selComp) {
+                const repo = obterRepositorioCompetencias();
+                const chaves = Object.keys(repo).sort().reverse();
+                if (chaves.length === 0) {
+                    selComp.innerHTML = '<option value="">Nenhuma competência salva</option>';
+                } else {
+                    selComp.innerHTML = chaves.map(k => `<option value="${escH(k)}">${escH(k)}</option>`).join('');
+                    const partesIso = isoData ? isoData.split('-') : [];
+                    const compDoDia = partesIso.length === 3 ? `${partesIso[1]}/${partesIso[0]}` : '';
+                    if (competenciaAtual && chaves.includes(competenciaAtual)) {
+                        selComp.value = competenciaAtual;
+                    } else if (compDoDia && chaves.includes(compDoDia)) {
+                        selComp.value = compDoDia;
+                    } else {
+                        selComp.value = chaves[0];
+                    }
+                }
+            }
+
+            const inpBusca = document.getElementById('pendenciasDUBusca');
+            if (inpBusca) inpBusca.value = '';
+
+            renderizarPendenciasDiaUtilONA();
+
+            const modal = document.getElementById('modalPendenciasDiaUtilONA');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => { modal.classList.add('modal-aberto'); });
+        };
+
+        window.fecharModalPendenciasDiaUtilONA = function () {
+            const modal = document.getElementById('modalPendenciasDiaUtilONA');
+            if (!modal) return;
+            modal.classList.remove('modal-aberto');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        };
+
+        window.alternarFeriadoPeloModalPendencias = function () {
+            if (!_pendDUDataIsoAtual) return;
+            fecharModalPendenciasDiaUtilONA();
+            alternarFeriadoDiaUtil(_pendDUDataIsoAtual);
+        };
+
+        function obterPendenciasDetalhadasPorCompetencia(comp) {
+            if (!comp) return [];
+            const linhasMes = obterDadosPlanilhaPorCompetencia(comp);
+            if (!linhasMes || linhasMes.length === 0) return [];
+
+            const temFiltroCentros = typeof centrosSelecionadosJust !== 'undefined' && centrosSelecionadosJust.size > 0;
+            const temFiltroContas = typeof contasSelecionadasJust !== 'undefined' && contasSelecionadasJust.size > 0;
+
+            const mapaCentros = new Map();
+            linhasMes.forEach(item => {
+                if (!item || !item.centro) return;
+                if (temFiltroCentros && !centrosSelecionadosJust.has(item.centro)) return;
+                if (temFiltroContas && !contasSelecionadasJust.has(item.conta)) return;
+                const isRec = item.conta && String(item.conta).startsWith('3');
+                if (isRec) return;
+
+                if (!mapaCentros.has(item.centro)) {
+                    mapaCentros.set(item.centro, {
+                        centro: item.centro,
+                        orcado: 0,
+                        realizado: 0,
+                        temAlgumaJust: false,
+                        contasNaoJustificadas: []
+                    });
+                }
+
+                const cObj = mapaCentros.get(item.centro);
+                const orc = Number(item.orcado) || 0;
+                const real = Number(item.realizado) || 0;
+                cObj.orcado += orc;
+                cObj.realizado += real;
+
+                let txtJust = (item.justificativa && String(item.justificativa).trim() !== '' && String(item.justificativa).trim() !== '-')
+                    ? String(item.justificativa).trim()
+                    : '';
+                if (!txtJust && typeof getJustificativa === 'function') {
+                    const jSalva = getJustificativa(item.centro, item.conta, comp);
+                    if (jSalva && String(jSalva).trim() !== '' && String(jSalva).trim() !== '-') {
+                        txtJust = String(jSalva).trim();
+                    }
+                }
+                if (txtJust) cObj.temAlgumaJust = true;
+
+                const diff = real - orc;
+                if (diff > 0.01 && !txtJust) {
+                    cObj.contasNaoJustificadas.push({
+                        conta: item.conta || '-',
+                        descricao: item.descricao || '-',
+                        orcado: orc,
+                        realizado: real,
+                        estouro: diff
+                    });
+                }
+            });
+
+            const pendentes = [];
+            mapaCentros.forEach(c => {
+                if (c.temAlgumaJust || verificarSeCentroJaJustificou(comp, c.centro)) return;
+                if (c.contasNaoJustificadas.length === 0) return;
+                c.contasNaoJustificadas.sort((a, b) => b.estouro - a.estouro);
+                const g = getGestor(c.centro);
+                pendentes.push({
+                    centro: c.centro,
+                    gestorNome: g ? g.nome : 'Não cadastrado',
+                    gestorEmail: g ? g.email : '',
+                    orcadoCentro: c.orcado,
+                    realizadoCentro: c.realizado,
+                    estouroContasTotal: c.contasNaoJustificadas.reduce((s, x) => s + x.estouro, 0),
+                    contasNaoJustificadas: c.contasNaoJustificadas
+                });
+            });
+
+            return pendentes.sort((a, b) => b.estouroContasTotal - a.estouroContasTotal);
+        }
+
+        window.abrirDetalhamentoCentroPeloDiaUtil = function (centro, comp) {
+            fecharModalPendenciasDiaUtilONA();
+            fecharModalContadorDiasUteis();
+            if (comp && comp !== competenciaAtual) {
+                const repo = obterRepositorioCompetencias();
+                const itemRepo = repo[comp];
+                if (itemRepo && Array.isArray(itemRepo.data) && itemRepo.data.length > 0) {
+                    competenciaAtual = comp;
+                    lsSet(LS_COMP, competenciaAtual);
+                    carregarDadosProcessados(itemRepo.data, itemRepo.fileName, true);
+                }
+            }
+            abrirModalDetalhes(centro, true);
+        };
+
+        window.renderizarPendenciasDiaUtilONA = function () {
+            const comp = document.getElementById('pendenciasDUSelectComp')?.value || '';
+            const termo = normalizarTexto(document.getElementById('pendenciasDUBusca')?.value || '');
+            const listaBase = obterPendenciasDetalhadasPorCompetencia(comp);
+
+            const filtrada = termo
+                ? listaBase.filter(c => {
+                    const hay = normalizarTexto(`${c.centro} ${c.gestorNome} ${c.gestorEmail} ${c.contasNaoJustificadas.map(x => `${x.conta} ${x.descricao}`).join(' ')}`);
+                    return hay.includes(termo);
+                })
+                : listaBase;
+
+            _pendDUCachedLista = filtrada;
+
+            let totalContas = 0;
+            let totalEstouro = 0;
+            filtrada.forEach(c => {
+                totalContas += c.contasNaoJustificadas.length;
+                totalEstouro += c.estouroContasTotal;
+            });
+
+            document.getElementById('pendDUQtdCentros').textContent = filtrada.length;
+            document.getElementById('pendDUQtdContas').textContent = totalContas;
+            document.getElementById('pendDUTotalEstouro').textContent = formatMoeda(totalEstouro);
+
+            const container = document.getElementById('listaPendenciasDiaUtilONA');
+            if (!container) return;
+
+            if (!comp) {
+                container.innerHTML = `<div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">Nenhuma planilha mensal disponível para análise.</div>`;
+                return;
+            }
+
+            if (filtrada.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-xl border border-emerald-200 p-8 text-center space-y-2">
+                        <i class="fa-solid fa-circle-check text-3xl text-emerald-500"></i>
+                        <div class="font-bold text-slate-800 text-sm">Nenhuma pendência encontrada para ${escH(comp)}!</div>
+                        <p class="text-xs text-slate-500">Todos os centros de custo que precisavam de análise orçamentária já justificaram.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            window.alternarContasPendenciaDU = function (idx) {
+                const box = document.getElementById('boxContasPendDU_' + idx);
+                const ico = document.getElementById('icoContasPendDU_' + idx);
+                if (!box) return;
+                const estaOculto = box.classList.contains('hidden');
+                if (estaOculto) {
+                    box.classList.remove('hidden');
+                    if (ico) ico.classList.add('rotate-180');
+                } else {
+                    box.classList.add('hidden');
+                    if (ico) ico.classList.remove('rotate-180');
+                }
+            };
+
+            container.innerHTML = filtrada.map((c, idx) => {
+                const linhasContas = c.contasNaoJustificadas.map(ct => `
+                    <tr class="hover:bg-rose-50/40">
+                        <td class="p-2 font-mono font-bold text-slate-700 whitespace-nowrap">${escH(ct.conta)}</td>
+                        <td class="p-2 text-slate-800">${escH(ct.descricao)}</td>
+                        <td class="p-2 text-right whitespace-nowrap text-slate-600">${formatMoeda(ct.orcado)}</td>
+                        <td class="p-2 text-right whitespace-nowrap text-slate-800 font-semibold">${formatMoeda(ct.realizado)}</td>
+                        <td class="p-2 text-right whitespace-nowrap font-extrabold text-rose-600">+${formatMoeda(ct.estouro)}</td>
+                    </tr>
+                `).join('');
+
+                return `
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+                        <div onclick="alternarContasPendenciaDU(${idx})"
+                            class="p-3.5 bg-slate-50 hover:bg-slate-100/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2 cursor-pointer select-none">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="font-extrabold text-slate-900 text-sm">${escH(c.centro)}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 inline-flex items-center gap-1">
+                                        ${c.contasNaoJustificadas.length} conta(s) sem justificativa
+                                        <i id="icoContasPendDU_${idx}" class="fa-solid fa-chevron-down text-[9px] transition-transform"></i>
+                                    </span>
+                                    <span class="text-xs font-extrabold text-rose-600">+${formatMoeda(c.estouroContasTotal)}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">
+                                    <i class="fa-regular fa-user mr-1"></i>${escH(c.gestorNome)}
+                                    ${c.gestorEmail ? ` • <span class="font-mono">${escH(c.gestorEmail)}</span>` : ' • <span class="text-amber-700 font-semibold">Sem e-mail cadastrado</span>'}
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                                <button type="button" onclick="alternarContasPendenciaDU(${idx})"
+                                    class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer">
+                                    <i class="fa-solid fa-list-ul mr-1"></i>Ver Contas
+                                </button>
+                                <button type="button" onclick="copiarWhatsAppDaAuditoria('${escH(c.centro)}', '${escH(comp)}', 1, '')"
+                                    class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer">
+                                    <i class="fa-brands fa-whatsapp mr-1"></i>Copiar Cobrança
+                                </button>
+                                <button type="button" onclick="abrirDetalhamentoCentroPeloDiaUtil('${escH(c.centro)}', '${escH(comp)}')"
+                                    class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#003A66] hover:bg-[#002B4D] text-white transition-colors cursor-pointer">
+                                    <i class="fa-solid fa-pen-to-square mr-1"></i>Abrir Contas
+                                </button>
+                            </div>
+                        </div>
+                        <div id="boxContasPendDU_${idx}" class="hidden overflow-x-auto border-t border-slate-200">
+                            <table class="w-full text-left text-[11px] border-collapse">
+                                <thead class="bg-slate-800 text-white font-bold uppercase text-[9px]">
+                                    <tr>
+                                        <th class="p-2">Conta</th>
+                                        <th class="p-2">Descrição da Conta Contábil</th>
+                                        <th class="p-2 text-right">Orçado (R$)</th>
+                                        <th class="p-2 text-right">Realizado (R$)</th>
+                                        <th class="p-2 text-right">Estouro (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">${linhasContas}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.exportarPendenciasDiaUtilPDF = function () {
+            const lista = _pendDUCachedLista || [];
+            if (lista.length === 0) {
+                alert('Nenhuma pendência para exportar em PDF.');
+                return;
+            }
+            const comp = document.getElementById('pendenciasDUSelectComp')?.value || '';
+            const badgeDia = document.getElementById('badgeDiaPendenciaONA')?.textContent || '';
+            const agoraData = new Date().toLocaleString('pt-BR');
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert('Pop-up bloqueado pelo navegador. Permita pop-ups para gerar o PDF.');
+                return;
+            }
+
+            const blocosHtml = lista.map(c => `
+                <div class="rounded-xl border border-slate-300 overflow-hidden mb-3" style="break-inside: avoid;">
+                    <div class="p-2.5 bg-slate-100 border-b border-slate-300 flex justify-between items-center">
+                        <div>
+                            <strong class="text-xs text-slate-900">${escH(c.centro)}</strong>
+                            <div class="text-[10px] text-slate-600">Gestor: ${escH(c.gestorNome)} ${c.gestorEmail ? '(' + escH(c.gestorEmail) + ')' : ''}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-bold text-rose-700">${c.contasNaoJustificadas.length} conta(s) sem justificativa</span>
+                            <div class="text-xs font-extrabold text-rose-700">+${formatMoeda(c.estouroContasTotal)}</div>
+                        </div>
+                    </div>
+                    <table class="w-full text-left text-[10px] border-collapse">
+                        <thead class="bg-slate-800 text-white uppercase text-[9px]">
+                            <tr>
+                                <th class="p-1.5">Conta</th>
+                                <th class="p-1.5">Descrição da Conta Contábil</th>
+                                <th class="p-1.5 text-right">Orçado</th>
+                                <th class="p-1.5 text-right">Realizado</th>
+                                <th class="p-1.5 text-right">Estouro</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            ${c.contasNaoJustificadas.map(ct => `
+                                <tr>
+                                    <td class="p-1.5 font-mono font-bold">${escH(ct.conta)}</td>
+                                    <td class="p-1.5">${escH(ct.descricao)}</td>
+                                    <td class="p-1.5 text-right">${formatMoeda(ct.orcado)}</td>
+                                    <td class="p-1.5 text-right">${formatMoeda(ct.realizado)}</td>
+                                    <td class="p-1.5 text-right font-bold text-rose-700">+${formatMoeda(ct.estouro)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `).join('');
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="utf-8">
+                    <title>Pendências de Análise Orçamentária - ${escH(comp)}</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <style>
+                        body { font-family: 'Open Sans', system-ui, sans-serif; font-size: 10px; }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: #fff !important; }
+                            @page { margin: 0.8cm; size: A4 landscape; }
+                            .no-print { display: none !important; }
+                        }
+                    </style>
+                </head>
+                <body class="p-5 bg-white text-slate-900">
+                    <div class="p-4 rounded-xl bg-slate-900 text-white flex justify-between items-center mb-4">
+                        <div>
+                            <div class="text-[10px] font-bold uppercase text-amber-300">${escH(badgeDia)} • Análise ${escH(comp)}</div>
+                            <h2 class="text-base font-extrabold">Centros de Custo e Contas Contábeis Sem Justificativa</h2>
+                        </div>
+                        <div class="text-right text-[10px] text-slate-300">
+                            <div class="font-bold text-white">HMDCC — Gestão de Custos</div>
+                            <div>Gerado em: ${escH(agoraData)}</div>
+                        </div>
+                    </div>
+                    ${blocosHtml}
+                    <script>
+                        window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 450); });
+                    <\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
         };
 
         // Restaurar automaticamente dados do Servidor Firebase ao iniciar (sem uso de localStorage)
