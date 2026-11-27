@@ -7127,6 +7127,20 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
         // ==========================================
         // COMPONENTES VISUAIS: TERMÔMETRO E TOP 5
         // ==========================================
+        function contaEstaNaTolerancia10(orcado, realizado) {
+            const orc = Number(orcado) || 0;
+            const real = Number(realizado) || 0;
+            if (orc <= 0) return false;
+            return (real - orc) > 0.01 && real <= (orc * 1.10 + 0.01);
+        }
+
+        function contaEstourouAlemTolerancia(orcado, realizado) {
+            const orc = Number(orcado) || 0;
+            const real = Number(realizado) || 0;
+            if (orc <= 0) return real > 0.01;
+            return real > (orc * 1.10 + 0.01);
+        }
+
         function renderTermometro(orcado, realizado, isReceita = false) {
             if (orcado <= 0 && realizado <= 0) {
                 return `
@@ -7216,11 +7230,16 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 let bgTrilho = "bg-emerald-100";
                 let badgeExtra = "";
 
-                if (perc > 100) {
+                if (perc > 110.001) {
                     corTexto = "text-rose-700 font-bold";
                     corBarra = "bg-rose-600";
                     bgTrilho = "bg-rose-100";
                     badgeExtra = `<span class="text-[9px] font-bold text-white bg-rose-600 px-1 py-0.2 rounded ml-1 animate-pulse">+${(perc - 100).toFixed(0)}%</span>`;
+                } else if (perc > 100.001) {
+                    corTexto = "text-orange-700 font-bold";
+                    corBarra = "bg-orange-500";
+                    bgTrilho = "bg-orange-100";
+                    badgeExtra = `<span class="text-[9px] font-bold text-white bg-orange-500 px-1 py-0.2 rounded ml-1" title="Dentro da tolerância de até 10% (não gera Não Conformidade)">Tol. +${(perc - 100).toFixed(1).replace('.', ',')}%</span>`;
                 } else if (perc >= 95) {
                     corTexto = "text-amber-700 font-bold";
                     corBarra = "bg-amber-500";
@@ -8020,9 +8039,8 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                         agrup[item.centro].justificativas.push(item.justificativa);
                     }
 
-                    // Regra: Sempre que o orçado for menor que o realizado (estouro de gastos)
-                    // Margem de 0.01 para evitar imprecisões de ponto flutuante
-                    if ((item.realizado - item.orcado) > 0.01) {
+                    // Regra: Considera estouro apenas quando ultrapassa a tolerância de 10% do orçado da conta contábil
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         agrup[item.centro].qtdEstouros++;
                         agrup[item.centro].contasEstouradas.push(item.conta);
                         if (temJust) {
@@ -8045,7 +8063,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (temJustificativa) {
                     status = "NAO_CONFORME_JUSTIFICADO";
                     just++;
-                } else if (c.qtdEstouros > 0 || varTotal > 0.01) {
+                } else if (c.qtdEstouros > 0) {
                     status = "NAO_CONFORME";
                     nconf++;
                 } else {
@@ -8429,7 +8447,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (isRec) countReceitas++;
                 else {
                     countCustos++;
-                    if ((Number(item.realizado) || 0) - (Number(item.orcado) || 0) > 0.01) {
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         countEstouradas++;
                     }
                 }
@@ -8509,7 +8527,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (filtro === 'SELECIONADAS') return contasSelecionadasJust.has(item.conta);
                 if (filtro === 'CUSTOS') return !isRec;
                 if (filtro === 'RECEITAS') return isRec;
-                if (filtro === 'ESTOURADAS') return !isRec && ((Number(item.realizado) || 0) - (Number(item.orcado) || 0)) > 0.01;
+                if (filtro === 'ESTOURADAS') return !isRec && contaEstourouAlemTolerancia(item.orcado, item.realizado);
                 if (filtro === 'PADRAO') {
                     return CONTAS_PADRAO.some(cod => item.conta && (item.conta.includes(cod) || cod.includes(item.conta)));
                 }
@@ -8576,16 +8594,20 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
                 let corVar = "";
                 let textoVar = formatMoeda(variacao);
+                const naTol10 = !isRec && contaEstaNaTolerancia10(item.orcado, item.realizado);
                 if (isRec) {
                     corVar = variacao >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold";
                     if (variacao > 0) textoVar = "+" + textoVar;
+                } else if (naTol10) {
+                    corVar = "text-orange-600 font-bold";
+                    textoVar = "+" + textoVar;
                 } else {
-                    corVar = variacao > 0 ? "text-rose-600 font-bold" : "text-emerald-600 font-bold";
+                    corVar = variacao > 0.01 ? "text-rose-600 font-bold" : "text-emerald-600 font-bold";
                 }
 
                 const tr = document.createElement('tr');
                 tr.dataset.rawIdx = refIndexGlobal;
-                tr.className = `hover:bg-slate-50 border-b border-slate-100 text-xs ${isRec ? 'bg-emerald-50/20' : ''}`;
+                tr.className = `hover:bg-slate-50 border-b border-slate-100 text-xs ${isRec ? 'bg-emerald-50/20' : (naTol10 ? 'bg-orange-50/40' : '')}`;
                 tr.innerHTML = `
                     <td class="p-2 font-mono text-slate-600">
                         <div class="flex items-center gap-1.5">
@@ -9949,7 +9971,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                         agrup[item.centro].justificativas.push(txtJust);
                     }
 
-                    if (((Number(item.realizado) || 0) - (Number(item.orcado) || 0)) > 0.01) {
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         agrup[item.centro].qtdEstouros++;
                         if (!txtJust) {
                             agrup[item.centro].qtdEstourosSemJust++;
@@ -9965,7 +9987,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 let status = 'CONFORME';
                 if (temJustificativa) {
                     status = 'NAO_CONFORME_JUSTIFICADO';
-                } else if (c.qtdEstouros > 0 || varTotal > 0.01) {
+                } else if (c.qtdEstouros > 0) {
                     status = 'NAO_CONFORME';
                 } else {
                     status = 'CONFORME';
@@ -11884,8 +11906,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 : null;
 
             const contas = linhasCentro.filter(r => {
-                const diff = (Number(r.realizado) || 0) - (Number(r.orcado) || 0);
-                if (diff <= 0.01) return false;
+                if (!contaEstourouAlemTolerancia(r.orcado, r.realizado)) return false;
                 let txtJust = (r.justificativa && String(r.justificativa).trim() && String(r.justificativa).trim() !== '-')
                     ? String(r.justificativa).trim()
                     : '';
@@ -12173,7 +12194,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     const jS = getJustificativa(r.centro, r.conta, comp);
                     if (jS && String(jS).trim() !== '' && String(jS).trim() !== '-') txtJust = String(jS).trim();
                 }
-                if (diff > 0.01 && !txtJust) {
+                if (contaEstourouAlemTolerancia(orc, real) && !txtJust) {
                     contasEstouradasSemJust.push({
                         conta: r.conta || '-',
                         descricao: r.descricao || '-',
@@ -14455,7 +14476,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     agrup[item.centro].realizado += item.realizado;
                     const temJust = Boolean(item.justificativa && item.justificativa.trim() !== '' && item.justificativa.trim() !== '-');
                     if (temJust) agrup[item.centro].justificativas.push(item.justificativa);
-                    if ((item.realizado - item.orcado) > 0.01) {
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         agrup[item.centro].qtdEstouros++;
                     }
                 });
@@ -14463,14 +14484,13 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 let cCount = 0, njCount = 0, nCount = 0;
                 Object.keys(agrup).forEach(cName => {
                     const item = agrup[cName];
-                    const varTotal = item.realizado - item.orcado;
                     const temJ = item.justificativas.length > 0;
                     let st = "CONFORME";
-                    // Mesma regra da Justificativa Gestor
+                    // Mesma regra da Justificativa Gestor (com tolerância de 10% por conta)
                     if (temJ) {
                         st = "NAO_CONFORME_JUSTIFICADO";
                         njCount++;
-                    } else if (item.qtdEstouros > 0 || varTotal > 0.01) {
+                    } else if (item.qtdEstouros > 0) {
                         st = "NAO_CONFORME";
                         nCount++;
                     } else {
@@ -17438,7 +17458,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (txtJust) cObj.temAlgumaJust = true;
 
                 const diff = real - orc;
-                if (diff > 0.01 && !txtJust) {
+                if (contaEstourouAlemTolerancia(orc, real) && !txtJust) {
                     cObj.contasNaoJustificadas.push({
                         conta: item.conta || '-',
                         descricao: item.descricao || '-',
