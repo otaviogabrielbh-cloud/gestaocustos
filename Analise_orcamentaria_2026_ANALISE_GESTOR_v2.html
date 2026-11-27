@@ -4838,7 +4838,7 @@
     <div id="modalDetalhes"
         class="modal-overlay fixed inset-0 bg-slate-900/70 backdrop-blur-md hidden items-center justify-center z-[9999] p-4">
         <div
-            class="modal-content bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            class="modal-content bg-white rounded-2xl shadow-2xl max-w-[96vw] 2xl:max-w-[1500px] w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="p-5 bg-slate-900 text-white flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="p-2.5 bg-brand-500 rounded-xl text-white shadow-md">
@@ -5100,13 +5100,13 @@
                         <thead>
                             <tr
                                 class="bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
-                                <th class="p-3">Conta Contábil</th>
-                                <th class="p-3">Descrição / Natureza</th>
-                                <th class="p-3 text-right">Orçado (R$)</th>
-                                <th class="p-3 text-right">Realizado (R$)</th>
-                                <th class="p-3 text-right">Variação (R$)</th>
-                                <th class="p-3 text-center">Consumo (%)</th>
-                                <th class="p-3">Justificativa</th>
+                                <th class="p-3 whitespace-nowrap">Conta Contábil</th>
+                                <th class="p-3 min-w-[280px] w-[28%]">Descrição / Natureza</th>
+                                <th class="p-3 text-right whitespace-nowrap">Orçado (R$)</th>
+                                <th class="p-3 text-right whitespace-nowrap">Realizado (R$)</th>
+                                <th class="p-3 text-right whitespace-nowrap">Variação (R$)</th>
+                                <th class="p-3 text-center whitespace-nowrap">Consumo (%)</th>
+                                <th class="p-3 min-w-[220px]">Justificativa</th>
                             </tr>
                         </thead>
                         <tbody id="modalTabelaItensBody" class="divide-y divide-slate-100 bg-white">
@@ -8609,28 +8609,28 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 tr.dataset.rawIdx = refIndexGlobal;
                 tr.className = `hover:bg-slate-50 border-b border-slate-100 text-xs ${isRec ? 'bg-emerald-50/20' : (naTol10 ? 'bg-orange-50/40' : '')}`;
                 tr.innerHTML = `
-                    <td class="p-2 font-mono text-slate-600">
+                    <td class="p-2 font-mono text-slate-600 whitespace-nowrap">
                         <div class="flex items-center gap-1.5">
                             ${badgeTipo}
                             <input type="text" data-campo="conta" value="${escH(item.conta || '')}"
-                                class="input-edicao-celula font-mono text-slate-700 w-20" title="Clique para editar o código da conta">
+                                class="input-edicao-celula font-mono text-slate-700 w-16" title="Clique para editar o código da conta">
                         </div>
                     </td>
-                    <td class="p-2 font-medium text-slate-800">
+                    <td class="p-2 font-medium text-slate-800 min-w-[280px]">
                         <input type="text" data-campo="descricao" value="${escH(item.descricao || '')}"
-                            class="input-edicao-celula font-medium text-slate-800" title="Clique para alterar o nome/descrição da conta">
+                            class="input-edicao-celula font-medium text-slate-800" title="${escH(item.descricao || '')} — Clique para alterar">
                     </td>
-                    <td class="p-2 text-right text-slate-600">
+                    <td class="p-2 text-right text-slate-600 whitespace-nowrap">
                         <input type="text" data-campo="orcado" value="${Number(item.orcado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
-                            class="input-edicao-celula text-right font-mono text-slate-700 w-28" title="Clique para alterar o valor Orçado (R$)">
+                            class="input-edicao-celula text-right font-mono text-slate-700 w-24" title="Clique para alterar o valor Orçado (R$)">
                     </td>
-                    <td class="p-2 text-right text-slate-600">
+                    <td class="p-2 text-right text-slate-600 whitespace-nowrap">
                         <input type="text" data-campo="realizado" value="${Number(item.realizado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
-                            class="input-edicao-celula text-right font-mono text-slate-700 w-28" title="Clique para alterar o valor Realizado (R$)">
+                            class="input-edicao-celula text-right font-mono text-slate-700 w-24" title="Clique para alterar o valor Realizado (R$)">
                     </td>
-                    <td class="p-2.5 text-right ${corVar}">${textoVar}</td>
-                    <td class="p-2.5 text-center">${renderTermometro(item.orcado, item.realizado, isRec)}</td>
-                    <td class="p-2 text-slate-600">
+                    <td class="p-2.5 text-right whitespace-nowrap ${corVar}">${textoVar}</td>
+                    <td class="p-2.5 text-center whitespace-nowrap">${renderTermometro(item.orcado, item.realizado, isRec)}</td>
+                    <td class="p-2 text-slate-600 min-w-[220px]">
                         <input type="text" data-campo="justificativa" value="${escH(item.justificativa || '')}" placeholder="Digite parecer ou observação..."
                             class="input-edicao-celula italic text-slate-700" title="Clique para digitar ou alterar a justificativa/parecer">
                     </td>
