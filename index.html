@@ -3925,6 +3925,23 @@
                             Carregando parecer executivo...
                         </div>
                     </div>
+
+                <!-- Parecer Executivo Automático para Diretoria -->
+                <div id="boxParecerExecutivoControladoria" class="bg-indigo-50/60 p-5 rounded-xl border border-indigo-200 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between border-b border-indigo-200/70 pb-2">
+                        <span
+                            class="text-xs font-bold text-indigo-950 flex items-center gap-1.5 uppercase tracking-wide">
+                            <i class="fa-solid fa-file-signature text-indigo-600"></i> Parecer Executivo — Controladoria
+                            HMDCC
+                        </span>
+                        <button type="button" onclick="copiarParecerDiretoria()"
+                            class="no-print px-2.5 py-1 text-[11px] font-semibold bg-white text-indigo-700 hover:bg-indigo-100 rounded-lg border border-indigo-200 shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-regular fa-copy"></i> <span id="lblBtnCopiarParecer">Copiar Parecer</span>
+                        </button>
+                    </div>
+                    <div id="repParecerExecutivoHTML" class="text-xs text-slate-700 leading-relaxed space-y-2">
+                    </div>
+                </div>
                 <!-- Cabeçalho do Relatório -->
                 <div
                     class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row justify-between sm:items-center gap-3">
@@ -4038,23 +4055,6 @@
                             <tbody id="repTabelaPendentesBody" class="divide-y divide-slate-100">
                             </tbody>
                         </table>
-                    </div>
-                </div>
-
-                <!-- Parecer Executivo Automático para Diretoria -->
-                <div class="bg-indigo-50/60 p-5 rounded-xl border border-indigo-200 shadow-xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-indigo-200/70 pb-2">
-                        <span
-                            class="text-xs font-bold text-indigo-950 flex items-center gap-1.5 uppercase tracking-wide">
-                            <i class="fa-solid fa-file-signature text-indigo-600"></i> Parecer Executivo — Controladoria
-                            HMDCC
-                        </span>
-                        <button type="button" onclick="copiarParecerDiretoria()"
-                            class="no-print px-2.5 py-1 text-[11px] font-semibold bg-white text-indigo-700 hover:bg-indigo-100 rounded-lg border border-indigo-200 shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-regular fa-copy"></i> <span id="lblBtnCopiarParecer">Copiar Parecer</span>
-                        </button>
-                    </div>
-                    <div id="repParecerExecutivoHTML" class="text-xs text-slate-700 leading-relaxed space-y-2">
                     </div>
                 </div>
 
@@ -7127,6 +7127,20 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
         // ==========================================
         // COMPONENTES VISUAIS: TERMÔMETRO E TOP 5
         // ==========================================
+        function contaEstaNaTolerancia10(orcado, realizado) {
+            const orc = Number(orcado) || 0;
+            const real = Number(realizado) || 0;
+            if (orc <= 0) return false;
+            return (real - orc) > 0.01 && real <= (orc * 1.10 + 0.01);
+        }
+
+        function contaEstourouAlemTolerancia(orcado, realizado) {
+            const orc = Number(orcado) || 0;
+            const real = Number(realizado) || 0;
+            if (orc <= 0) return real > 0.01;
+            return real > (orc * 1.10 + 0.01);
+        }
+
         function renderTermometro(orcado, realizado, isReceita = false) {
             if (orcado <= 0 && realizado <= 0) {
                 return `
@@ -7216,11 +7230,16 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 let bgTrilho = "bg-emerald-100";
                 let badgeExtra = "";
 
-                if (perc > 100) {
+                if (perc > 110.001) {
                     corTexto = "text-rose-700 font-bold";
                     corBarra = "bg-rose-600";
                     bgTrilho = "bg-rose-100";
                     badgeExtra = `<span class="text-[9px] font-bold text-white bg-rose-600 px-1 py-0.2 rounded ml-1 animate-pulse">+${(perc - 100).toFixed(0)}%</span>`;
+                } else if (perc > 100.001) {
+                    corTexto = "text-orange-700 font-bold";
+                    corBarra = "bg-orange-500";
+                    bgTrilho = "bg-orange-100";
+                    badgeExtra = `<span class="text-[9px] font-bold text-white bg-orange-500 px-1 py-0.2 rounded ml-1" title="Dentro da tolerância de até 10% (não gera Não Conformidade)">Tol. +${(perc - 100).toFixed(1).replace('.', ',')}%</span>`;
                 } else if (perc >= 95) {
                     corTexto = "text-amber-700 font-bold";
                     corBarra = "bg-amber-500";
@@ -8020,9 +8039,8 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                         agrup[item.centro].justificativas.push(item.justificativa);
                     }
 
-                    // Regra: Sempre que o orçado for menor que o realizado (estouro de gastos)
-                    // Margem de 0.01 para evitar imprecisões de ponto flutuante
-                    if ((item.realizado - item.orcado) > 0.01) {
+                    // Regra: Considera estouro apenas quando ultrapassa a tolerância de 10% do orçado da conta contábil
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         agrup[item.centro].qtdEstouros++;
                         agrup[item.centro].contasEstouradas.push(item.conta);
                         if (temJust) {
@@ -8045,7 +8063,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (temJustificativa) {
                     status = "NAO_CONFORME_JUSTIFICADO";
                     just++;
-                } else if (c.qtdEstouros > 0 || varTotal > 0.01) {
+                } else if (c.qtdEstouros > 0) {
                     status = "NAO_CONFORME";
                     nconf++;
                 } else {
@@ -8429,7 +8447,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (isRec) countReceitas++;
                 else {
                     countCustos++;
-                    if ((Number(item.realizado) || 0) - (Number(item.orcado) || 0) > 0.01) {
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         countEstouradas++;
                     }
                 }
@@ -8509,7 +8527,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (filtro === 'SELECIONADAS') return contasSelecionadasJust.has(item.conta);
                 if (filtro === 'CUSTOS') return !isRec;
                 if (filtro === 'RECEITAS') return isRec;
-                if (filtro === 'ESTOURADAS') return !isRec && ((Number(item.realizado) || 0) - (Number(item.orcado) || 0)) > 0.01;
+                if (filtro === 'ESTOURADAS') return !isRec && contaEstourouAlemTolerancia(item.orcado, item.realizado);
                 if (filtro === 'PADRAO') {
                     return CONTAS_PADRAO.some(cod => item.conta && (item.conta.includes(cod) || cod.includes(item.conta)));
                 }
@@ -8576,16 +8594,20 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
 
                 let corVar = "";
                 let textoVar = formatMoeda(variacao);
+                const naTol10 = !isRec && contaEstaNaTolerancia10(item.orcado, item.realizado);
                 if (isRec) {
                     corVar = variacao >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold";
                     if (variacao > 0) textoVar = "+" + textoVar;
+                } else if (naTol10) {
+                    corVar = "text-orange-600 font-bold";
+                    textoVar = "+" + textoVar;
                 } else {
-                    corVar = variacao > 0 ? "text-rose-600 font-bold" : "text-emerald-600 font-bold";
+                    corVar = variacao > 0.01 ? "text-rose-600 font-bold" : "text-emerald-600 font-bold";
                 }
 
                 const tr = document.createElement('tr');
                 tr.dataset.rawIdx = refIndexGlobal;
-                tr.className = `hover:bg-slate-50 border-b border-slate-100 text-xs ${isRec ? 'bg-emerald-50/20' : ''}`;
+                tr.className = `hover:bg-slate-50 border-b border-slate-100 text-xs ${isRec ? 'bg-emerald-50/20' : (naTol10 ? 'bg-orange-50/40' : '')}`;
                 tr.innerHTML = `
                     <td class="p-2 font-mono text-slate-600">
                         <div class="flex items-center gap-1.5">
@@ -9949,7 +9971,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                         agrup[item.centro].justificativas.push(txtJust);
                     }
 
-                    if (((Number(item.realizado) || 0) - (Number(item.orcado) || 0)) > 0.01) {
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         agrup[item.centro].qtdEstouros++;
                         if (!txtJust) {
                             agrup[item.centro].qtdEstourosSemJust++;
@@ -9965,7 +9987,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 let status = 'CONFORME';
                 if (temJustificativa) {
                     status = 'NAO_CONFORME_JUSTIFICADO';
-                } else if (c.qtdEstouros > 0 || varTotal > 0.01) {
+                } else if (c.qtdEstouros > 0) {
                     status = 'NAO_CONFORME';
                 } else {
                     status = 'CONFORME';
@@ -11884,8 +11906,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 : null;
 
             const contas = linhasCentro.filter(r => {
-                const diff = (Number(r.realizado) || 0) - (Number(r.orcado) || 0);
-                if (diff <= 0.01) return false;
+                if (!contaEstourouAlemTolerancia(r.orcado, r.realizado)) return false;
                 let txtJust = (r.justificativa && String(r.justificativa).trim() && String(r.justificativa).trim() !== '-')
                     ? String(r.justificativa).trim()
                     : '';
@@ -12173,7 +12194,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     const jS = getJustificativa(r.centro, r.conta, comp);
                     if (jS && String(jS).trim() !== '' && String(jS).trim() !== '-') txtJust = String(jS).trim();
                 }
-                if (diff > 0.01 && !txtJust) {
+                if (contaEstourouAlemTolerancia(orc, real) && !txtJust) {
                     contasEstouradasSemJust.push({
                         conta: r.conta || '-',
                         descricao: r.descricao || '-',
@@ -12506,31 +12527,57 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 `;
                 window.textoParecerDiretoriaAtual = `PARECER EXECUTIVO — CONTROLADORIA HMDCC (${compTexto})\n\nForam auditados ${total} centros de custo, atingindo 100% de regularização (${conformes.length} conformes e ${justificados.length} justificados).\n\n✅ Conclusão: Ciclo orçamentário 100% regularizado, sem pendências em aberto.`;
             } else {
-                const top3 = [...pendentes].filter(i => i.variacao > 0).sort((a, b) => b.variacao - a.variacao).slice(0, 3);
-                const listaTopHTML = top3.map((t, idx) => {
+                const todosPendentes = [...pendentes].sort((a, b) => b.variacao - a.variacao);
+                const getContasSemJust = (centro) => {
+                    return (typeof rawExcelData !== 'undefined' ? rawExcelData : [])
+                        .filter(r =>
+                            normC(r.centro) === normC(centro) &&
+                            (!contasSelecionadasJust.size || contasSelecionadasJust.has(r.conta)) &&
+                            !(r.conta && String(r.conta).startsWith('3')) &&
+                            contaEstourouAlemTolerancia(r.orcado, r.realizado) &&
+                            !(r.justificativa && String(r.justificativa).trim() !== '' && String(r.justificativa).trim() !== '-')
+                        )
+                        .sort((a, b) => (b.realizado - b.orcado) - (a.realizado - a.orcado));
+                };
+
+                const listaTopHTML = todosPendentes.map((t, idx) => {
                     const g = getGestor(t.centro);
                     const n = notificacoes[`${competenciaAtual}|${t.centro}`];
                     const infoSt = n ? `Notificado em ${new Date(n).toLocaleDateString('pt-BR')}` : (g ? `Gestor: ${escH(g.nome)} - Pendente de envio` : 'Sem gestor cadastrado');
-                    return `<li><strong>${idx + 1}. ${escH(t.centro)}:</strong> <span class="text-rose-700 font-bold">+${formatMoeda(t.variacao)}</span> <span class="text-slate-500 italic">(${infoSt})</span></li>`;
+                    const varStr = t.variacao > 0 ? `+${formatMoeda(t.variacao)}` : formatMoeda(t.variacao);
+                    const varCls = t.variacao > 0 ? 'text-rose-700' : 'text-slate-700';
+                    const contasSemJust = getContasSemJust(t.centro);
+                    const contasHTML = contasSemJust.length > 0
+                        ? `<ul class="pl-4 mt-0.5 mb-1.5 space-y-0.5 text-[11px] text-slate-600 list-disc">${contasSemJust.map(c => {
+                            const dif = c.realizado - c.orcado;
+                            return `<li><span class="font-mono font-semibold text-slate-700">${escH(c.conta)}</span> — ${escH(c.descricao)}: <span class="text-rose-600 font-semibold">+${formatMoeda(dif)}</span></li>`;
+                        }).join('')}</ul>`
+                        : '';
+                    return `<li><strong>${idx + 1}. ${escH(t.centro)}:</strong> <span class="${varCls} font-bold">${varStr}</span> <span class="text-slate-500 italic">(${infoSt})</span>${contasHTML}</li>`;
                 }).join('');
 
-                const listaTopTxt = top3.map((t, idx) => {
+                const listaTopTxt = todosPendentes.map((t, idx) => {
                     const g = getGestor(t.centro);
                     const n = notificacoes[`${competenciaAtual}|${t.centro}`];
                     const infoSt = n ? `Notificado em ${new Date(n).toLocaleDateString('pt-BR')}` : (g ? `Gestor: ${g.nome} - Pendente` : 'Sem gestor');
-                    return `  ${idx + 1}. ${t.centro}: +${formatMoeda(t.variacao)} (${infoSt})`;
+                    const varStr = t.variacao > 0 ? `+${formatMoeda(t.variacao)}` : formatMoeda(t.variacao);
+                    const contasSemJust = getContasSemJust(t.centro);
+                    const contasTxt = contasSemJust.length > 0
+                        ? '\n' + contasSemJust.map(c => `     • ${c.conta} — ${c.descricao}: +${formatMoeda(c.realizado - c.orcado)}`).join('\n')
+                        : '';
+                    return `  ${idx + 1}. ${t.centro}: ${varStr} (${infoSt})${contasTxt}`;
                 }).join('\n');
 
                 elParecer.innerHTML = `
                     <p>Na competência <strong>${escH(compTexto)}</strong>, foram auditados <strong>${total} centros de custo</strong>, atingindo um índice de conformidade e resposta de <strong>${String(pctResolvido).replace('.', ',')}%</strong> (<strong>${conformes.length}</strong> dentro da meta orçamentária e <strong>${justificados.length}</strong> com justificativas técnicas apresentadas).</p>
                     <div>
                         <p class="mb-1">⚠️ <strong>Pontos de Atenção:</strong> Restam <strong>${pendentes.length} centro(s) pendente(s) de justificativa</strong> (${String(pctPend).replace('.', ',')}% do escopo), totalizando um desvio financeiro pendente de <strong class="text-rose-700">${formatMoeda(totalEstouroPend)}</strong>. Os maiores impactos concentram-se em:</p>
-                        <ul class="pl-3 space-y-0.5">${listaTopHTML}</ul>
+                        <ul class="pl-3 space-y-1">${listaTopHTML}</ul>
                     </div>
                     <p>📌 <strong>Encaminhamento:</strong> ${qtdNotif > 0 ? `<strong>${qtdNotif}</strong> gestor(es) já foram formalmente notificados. ` : ''}Recomenda-se priorizar o retorno dos centros de maior impacto financeiro${qtdSemGestor > 0 ? ` e concluir o vínculo dos <strong>${qtdSemGestor} centro(s) sem gestor cadastrado</strong>` : ''} para o fechamento do ciclo orçamentário.</p>
                 `;
 
-                window.textoParecerDiretoriaAtual = `PARECER EXECUTIVO — CONTROLADORIA HMDCC (${compTexto})\n\nForam auditados ${total} centros de custo, atingindo ${String(pctResolvido).replace('.', ',')}% de regularização (${conformes.length} na meta e ${justificados.length} justificados).\n\n⚠️ Pontos de Atenção:\nRestam ${pendentes.length} centro(s) pendente(s) (${String(pctPend).replace('.', ',')}% do total), somando ${formatMoeda(totalEstouroPend)} em desvios sem justificativa. Principais impactos:\n${listaTopTxt}\n\n📌 Encaminhamento:\n${qtdNotif > 0 ? `${qtdNotif} gestor(es) já notificados. ` : ''}Priorizar a cobrança dos maiores desvios${qtdSemGestor > 0 ? ` e cadastrar os ${qtdSemGestor} gestor(es) faltantes` : ''} para fechamento do ciclo.`;
+                window.textoParecerDiretoriaAtual = `PARECER EXECUTIVO — CONTROLADORIA HMDCC (${compTexto})\n\nForam auditados ${total} centros de custo, atingindo ${String(pctResolvido).replace('.', ',')}% de regularização (${conformes.length} na meta e ${justificados.length} justificados).\n\n⚠️ Pontos de Atenção:\nRestam ${pendentes.length} centro(s) pendente(s) (${String(pctPend).replace('.', ',')}% do total), somando ${formatMoeda(totalEstouroPend)} em desvios sem justificativa. Os maiores impactos concentram-se em:\n${listaTopTxt}\n\n📌 Encaminhamento:\n${qtdNotif > 0 ? `${qtdNotif} gestor(es) já notificados. ` : ''}Priorizar a cobrança dos maiores desvios${qtdSemGestor > 0 ? ` e cadastrar os ${qtdSemGestor} gestor(es) faltantes` : ''} para fechamento do ciclo.`;
             }
 
             const m = document.getElementById('modalRelatorioDiretoria');
@@ -12837,7 +12884,17 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
             const badgeSalvo = document.getElementById('badgeStatusSalvoRelatorioDir');
 
             if (!forcarOriginal && relatoriosSalvos[comp] && relatoriosSalvos[comp].htmlCorpo && corpo) {
+                const novoParecerHTML = document.getElementById('repParecerExecutivoHTML')?.innerHTML || '';
                 corpo.innerHTML = relatoriosSalvos[comp].htmlCorpo;
+                const boxDiag = corpo.querySelector('#boxParecerDiretoria');
+                const elParecerExec = corpo.querySelector('#repParecerExecutivoHTML');
+                const boxExec = corpo.querySelector('#boxParecerExecutivoControladoria') || (elParecerExec ? elParecerExec.parentElement : null);
+                if (boxDiag && boxExec && boxDiag.nextElementSibling !== boxExec) {
+                    boxDiag.insertAdjacentElement('afterend', boxExec);
+                    if (elParecerExec && novoParecerHTML) {
+                        elParecerExec.innerHTML = novoParecerHTML;
+                    }
+                }
                 if (badgeSalvo) badgeSalvo.classList.remove('hidden');
             } else {
                 if (badgeSalvo) badgeSalvo.classList.add('hidden');
@@ -14455,7 +14512,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                     agrup[item.centro].realizado += item.realizado;
                     const temJust = Boolean(item.justificativa && item.justificativa.trim() !== '' && item.justificativa.trim() !== '-');
                     if (temJust) agrup[item.centro].justificativas.push(item.justificativa);
-                    if ((item.realizado - item.orcado) > 0.01) {
+                    if (contaEstourouAlemTolerancia(item.orcado, item.realizado)) {
                         agrup[item.centro].qtdEstouros++;
                     }
                 });
@@ -14463,14 +14520,13 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 let cCount = 0, njCount = 0, nCount = 0;
                 Object.keys(agrup).forEach(cName => {
                     const item = agrup[cName];
-                    const varTotal = item.realizado - item.orcado;
                     const temJ = item.justificativas.length > 0;
                     let st = "CONFORME";
-                    // Mesma regra da Justificativa Gestor
+                    // Mesma regra da Justificativa Gestor (com tolerância de 10% por conta)
                     if (temJ) {
                         st = "NAO_CONFORME_JUSTIFICADO";
                         njCount++;
-                    } else if (item.qtdEstouros > 0 || varTotal > 0.01) {
+                    } else if (item.qtdEstouros > 0) {
                         st = "NAO_CONFORME";
                         nCount++;
                     } else {
@@ -17438,7 +17494,7 @@ Se este usuário tentar entrar novamente, precisará de nova autorização.`)) r
                 if (txtJust) cObj.temAlgumaJust = true;
 
                 const diff = real - orc;
-                if (diff > 0.01 && !txtJust) {
+                if (contaEstourouAlemTolerancia(orc, real) && !txtJust) {
                     cObj.contasNaoJustificadas.push({
                         conta: item.conta || '-',
                         descricao: item.descricao || '-',
